@@ -11,12 +11,10 @@ import {
 
 import {
   reset,
-  selectProducts,
 } from './features/order/orderSlice';
 
 function App() {
   const count = useAppSelector(selectCount)
-  const products = useAppSelector(selectProducts)
   const dispatch = useAppDispatch();
 
   const componentRef = useRef(null);
