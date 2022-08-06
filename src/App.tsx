@@ -1,57 +1,44 @@
-import React from 'react';
-import logo from './logo.svg';
-import { Counter } from './features/counter/Counter';
-import './App.css';
+import React, { useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
+
+import { Order } from './features/order/Order';
+import { PrintableOrder } from './features/order/PrintableOrder';
+import { useAppSelector, useAppDispatch } from './app/hooks';
+import {
+  selectCount,
+  increment
+} from './features/counter/counterSlice';
+
+import {
+  reset,
+  selectProducts,
+} from './features/order/orderSlice';
 
 function App() {
+  const count = useAppSelector(selectCount)
+  const products = useAppSelector(selectProducts)
+  const dispatch = useAppDispatch();
+
+  const componentRef = useRef(null);
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+    onAfterPrint: () => {
+      dispatch(increment())
+      dispatch(reset())
+    }
+  });
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <Counter />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <span>
-          <span>Learn </span>
-          <a
-            className="App-link"
-            href="https://reactjs.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux-toolkit.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux Toolkit
-          </a>
-          ,<span> and </span>
-          <a
-            className="App-link"
-            href="https://react-redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React Redux
-          </a>
-        </span>
-      </header>
-    </div>
+    <main>
+      <div>{count}</div>
+      <Order />
+
+      <div className="d-none d-print-block" ref={componentRef}>
+        <PrintableOrder count={count} />
+      </div>
+
+      <button onClick={handlePrint}>Print this out!</button>
+    </main>
   );
 }
 
