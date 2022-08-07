@@ -2,6 +2,8 @@
 
 .order > .orderRow {
   background-color: transparent;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 .order > .orderRow:nth-child(odd) {
   background-color: rgba(0,0,0,0.05);

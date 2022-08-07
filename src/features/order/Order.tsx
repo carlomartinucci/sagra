@@ -24,28 +24,35 @@ export function Order() {
   const totalEuroCents = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
 
   return <Container fluid className={styles.order}>
+    <Row className="small text-muted">
+      <Col className="my-auto">Nome del piatto</Col>
+      <Col className="my-auto text-end" xs={2}>Prezzo unitario</Col>
+      <Col xs="auto" className="text-center"><span style={{ width: 115 }}>Quantità</span></Col>
+      <Col className="my-auto text-end" xs={2}>Subtotale</Col>
+    </Row>
+
     { Object.entries(products).map(([key, product]) => {
       const totalPriceCents = product.euroCents * product.quantity
       return <Row key={key} className={styles.orderRow}>
-        <Col className="my-auto" xs={6}>{product.name}</Col>
-        <Col className="my-auto" xs={2}>{displayEuroCents(product.euroCents)}</Col>
-        <Col xs={2}>
-          <InputGroup>
-            <Button disabled={product.quantity === 0} onClick={() => dispatch(decrement(key))}>
+        <Col className="my-auto">{product.name}</Col>
+        <Col className="my-auto text-end" xs={2}>{displayEuroCents(product.euroCents)}</Col>
+        <Col xs="auto">
+          <InputGroup style={{ width: 115 }}>
+            <Button variant="outline-secondary" disabled={product.quantity === 0} onClick={() => dispatch(decrement(key))}>
               -
             </Button>
             <Form.Control readOnly value={product.quantity}/>
-            <Button onClick={() => dispatch(increment(key))}>
+            <Button variant="outline-secondary" onClick={() => dispatch(increment(key))}>
               +
             </Button>
           </InputGroup>
         </Col>
-        <Col className="my-auto" xs={2}>{totalPriceCents > 0 ? displayEuroCents(totalPriceCents) : ""}</Col>
+        <Col className="my-auto text-end" xs={2}>{totalPriceCents > 0 ? displayEuroCents(totalPriceCents) : ""}</Col>
       </Row>
     })}
 
     <Row>
-      <Col>Totale: euro {displayEuroCents(totalEuroCents)}</Col>
+      <Col className="text-end">Totale: euro {displayEuroCents(totalEuroCents)}</Col>
     </Row>
   </Container>
 }

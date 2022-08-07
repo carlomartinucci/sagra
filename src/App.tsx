@@ -1,6 +1,10 @@
 import React, { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 
+import Button from 'react-bootstrap/Button';
+import Navbar from 'react-bootstrap/Navbar';
+import Container from 'react-bootstrap/Container';
+
 import { Order } from './features/order/Order';
 import { PrintableOrder } from './features/order/PrintableOrder';
 import { useAppSelector, useAppDispatch } from './app/hooks';
@@ -27,16 +31,26 @@ function App() {
   });
 
   return (
+    <>
+    <Navbar bg="dark" variant="dark">
+      <Container fluid>
+         <Navbar.Brand>Ordine #{count}</Navbar.Brand>
+      </Container>
+    </Navbar>
+
     <main>
-      <div>{count}</div>
       <Order />
 
-      <div className="d-none d-print-block" ref={componentRef}>
-        <PrintableOrder count={count} />
-      </div>
 
-      <button onClick={handlePrint}>Print this out!</button>
+      <Container fluid className="text-center">
+        <Button size="lg" onClick={handlePrint}>Conferma, paga e stampa</Button>
+      </Container>
     </main>
+
+    <div className="d-none d-print-block" ref={componentRef}>
+      <PrintableOrder count={count} />
+    </div>
+    </>
   );
 }
 

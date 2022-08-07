@@ -16,14 +16,14 @@ export function PrintableOrder({ count }: { count: string }) {
   const totalEuroCents = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
 
   return <>
-  <Container fluid>
+  <Container fluid style={{padding: "65px 50px"}}>
     <h1>{count}</h1>
 
     { Object.entries(products).map(([key, product]) => {
       const totalPriceCents = product.euroCents * product.quantity
       return <Row key={key}>
-        <Col>{product.quantity} {product.name} ({displayEuroCents(product.euroCents)})</Col>
-        <Col className="text-end">{totalPriceCents > 0 ? displayEuroCents(totalPriceCents) : ""}</Col>
+        <Col xs={9}>{product.quantity} {product.name} ({displayEuroCents(product.euroCents)})</Col>
+        <Col xs={3} className="text-end">{totalPriceCents > 0 ? displayEuroCents(totalPriceCents) : ""}</Col>
       </Row>
     })}
 
@@ -34,7 +34,7 @@ export function PrintableOrder({ count }: { count: string }) {
 
   <Break/>
 
-  <Container fluid>
+  <Container fluid style={{padding: "65px 50px"}}>
     <h1>PER LA CUCINA</h1>
 
     <h1>{count}</h1>
