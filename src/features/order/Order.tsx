@@ -27,7 +27,7 @@ export function Order() {
     <Row className="small text-muted">
       <Col className="my-auto">Nome del piatto</Col>
       <Col className="my-auto text-end" xs={2}>Prezzo unitario</Col>
-      <Col xs="auto" className="text-center"><span style={{ width: 115 }}>Quantità</span></Col>
+      <Col xs="auto" className="text-center"><span className="d-block" style={{ width: 115 }}>Quantità</span></Col>
       <Col className="my-auto text-end" xs={2}>Subtotale</Col>
     </Row>
 
