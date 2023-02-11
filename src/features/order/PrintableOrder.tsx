@@ -14,7 +14,6 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
 export function RecapOrder() {
-  const count = useAppSelector(selectCount)
   const products = useAppSelector(selectProducts);
 
   const totalEuroCents = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)

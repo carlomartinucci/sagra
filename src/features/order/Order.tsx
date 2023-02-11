@@ -24,7 +24,6 @@ import Modal from 'react-bootstrap/Modal';
 
 export function Order() {
   const products = useAppSelector(selectProducts);
-  const dispatch = useAppDispatch();
 
   const totalEuroCents = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
 
@@ -36,10 +35,10 @@ export function Order() {
       <Col className="my-auto text-end" xs={2}>Subtotale</Col>
     </Row>
 
-    { Object.entries(products).map(([key, product]) => {
-      const totalPriceCents = product.euroCents * product.quantity
-      return <ProductRow key={key} productKey={key} product={product} />
-    })}
+    {
+      Object.entries(products)
+        .map(([key, product]) => <ProductRow key={key} productKey={key} product={product} />)
+    }
 
     <Row>
       <Col className="text-end">Totale: euro {displayEuroCents(totalEuroCents)}</Col>
