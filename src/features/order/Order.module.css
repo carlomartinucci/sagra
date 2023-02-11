@@ -6,5 +6,15 @@
   padding-bottom: 5px;
 }
 .order > .orderRow:nth-child(odd) {
-  background-color: rgba(0,0,0,0.05);
+  background-color: rgb(242,242,242);
+}
+
+.order > .notesRow {
+  margin-top: -10px;  
+  padding-bottom: 5px;  
+  background-color: rgb(242,242,242);
+}
+
+.order > .notesRow:nth-child(odd) {
+  background-color: transparent;
 }
