@@ -17,7 +17,7 @@ export function PrintableOrder({ count }: { count: string }) {
 
   return <>
   <Container fluid style={{padding: "65px 50px"}}>
-    <h1>{count}</h1>
+    <h1 style={{ fontSize: "5rem" }}>{count}</h1>
 
     { Object.entries(products).map(([key, product]) => {
       const totalPriceCents = product.euroCents * product.quantity
@@ -37,13 +37,19 @@ export function PrintableOrder({ count }: { count: string }) {
   <Container fluid style={{padding: "65px 50px"}}>
     <h1>PER LA CUCINA</h1>
 
-    <h1>{count}</h1>
+    <h1 style={{ fontSize: "5rem" }}>{count}</h1>
 
-    { Object.entries(products).map(([key, product]) => {
+    { Object.entries(products).filter(item => item[1].quantity > 0).map(([key, product]) => {
+      const totalPriceCents = product.euroCents * product.quantity
       return <Row key={key} className={product.quantity === 0 ? "text-muted" : ""}>
-        <Col>{product.quantity} {product.name}</Col>
+        <Col xs={9}>{product.quantity} {product.name} ({displayEuroCents(product.euroCents)})</Col>
+        <Col xs={3} className="text-end">{totalPriceCents > 0 ? displayEuroCents(totalPriceCents) : ""}</Col>
       </Row>
     })}
+
+    <Row>
+      <Col className="text-end">Totale: {displayEuroCents(totalEuroCents)}</Col>
+    </Row>
   </Container>
   </>
 }
