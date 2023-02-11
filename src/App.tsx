@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 
 import Button from 'react-bootstrap/Button';
@@ -6,7 +6,7 @@ import Navbar from 'react-bootstrap/Navbar';
 import Container from 'react-bootstrap/Container';
 
 import { Order } from './features/order/Order';
-import { PrintableOrder } from './features/order/PrintableOrder';
+import { RecapOrder, PrintableOrder } from './features/order/PrintableOrder';
 import { useAppSelector, useAppDispatch } from './app/hooks';
 import {
   selectCount,
@@ -18,6 +18,7 @@ import {
 } from './features/order/orderSlice';
 
 function App() {
+  const [navigation, setNavigation] = useState("order")
   const count = useAppSelector(selectCount)
   const dispatch = useAppDispatch();
 
@@ -38,17 +39,29 @@ function App() {
       </Container>
     </Navbar>
 
-    <main>
-      <Order />
+    {
+      navigation === "order" ?
+        <main>
+          <Order />
 
+          <Container fluid className="text-center">
+            <Button size="lg" onClick={() => { setNavigation("confirm") }}>Conferma e paga</Button>
+          </Container>
+        </main> :
+      navigation === "confirm" ?
+        <main>
+          <RecapOrder />
 
-      <Container fluid className="text-center">
-        <Button size="lg" onClick={handlePrint}>Conferma, paga e stampa</Button>
-      </Container>
-    </main>
+          <Container fluid className="text-center">
+            <Button style={{ marginRight: 20 }}variant="secondary" size="lg" onClick={() => { setNavigation("order") }}>Torna all'ordine</Button>
+            <Button size="lg" onClick={() => { handlePrint(); setNavigation("order") }}>Conferma e stampa</Button>
+          </Container>
+        </main> :
+        <div></div> 
+    }
 
     <div className="d-none d-print-block" ref={componentRef}>
-      <PrintableOrder count={count} />
+      <PrintableOrder />
     </div>
     </>
   );

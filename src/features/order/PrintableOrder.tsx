@@ -5,12 +5,38 @@ import {
   selectProducts,
   displayEuroCents,
 } from './orderSlice';
+import {
+  selectCount,
+} from '../counter/counterSlice';
 
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
-export function PrintableOrder({ count }: { count: string }) {
+export function RecapOrder() {
+  const count = useAppSelector(selectCount)
+  const products = useAppSelector(selectProducts);
+
+  const totalEuroCents = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
+
+  return <Container fluid style={{paddingTop: 30}}>
+    { Object.entries(products).filter(item => item[1].quantity > 0).map(([key, product]) => {
+      return <Row key={key} className={product.quantity === 0 ? "text-muted" : ""}>
+        <Col xs={12}>
+          <span style={{ fontSize: "1.4rem", fontWeight: "bold" }}>{product.quantity}</span> {product.name}
+          {product.notes && <span> (Note: <span style={{ fontWeight: "bold" }}>{product.notes}</span>)</span>}
+        </Col>
+      </Row>
+    })}
+    <Row>
+      <Col className="text-end">Totale: {displayEuroCents(totalEuroCents)}</Col>
+    </Row>
+  </Container>
+
+}
+
+export function PrintableOrder() {
+  const count = useAppSelector(selectCount)
   const products = useAppSelector(selectProducts);
 
   const totalEuroCents = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
