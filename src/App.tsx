@@ -30,7 +30,7 @@ function App() {
 
   return (
     <>
-    <div className="d-print-none">
+    <div className="d-print-none mb-5">
       <Navbar bg="dark" variant="dark">
         <Container fluid>
           <Navbar.Brand onClick={() => setNavigation("order")}>Ordine #{count}</Navbar.Brand>
@@ -47,7 +47,7 @@ function App() {
           <main>
             <Order />
 
-            <Container fluid className="text-center">
+            <Container className="text-center">
               <Button size="lg" onClick={() => { setNavigation("recap") }}>Procedi al riepilogo</Button>
             </Container>
           </main> :
@@ -55,8 +55,8 @@ function App() {
           <main>
             <RecapOrder />
 
-            <Container fluid className="text-center">
-              <Button style={{ marginRight: 20 }}variant="secondary" size="lg" onClick={() => { setNavigation("order") }}>Torna indietro</Button>
+            <Container className="text-center">
+              <Button style={{ marginBottom: 10 }}variant="secondary" size="lg" onClick={() => { setNavigation("order") }}>Torna indietro</Button><br/>
               <Button size="lg" onClick={() => { setNavigation("pay") }}>Procedi al pagamento</Button>
             </Container>
           </main> :
@@ -64,14 +64,14 @@ function App() {
           <main>
             <Total />
 
-            <Container style={{paddingTop: 30}} fluid className="text-center">
-              <Button style={{ marginRight: 20 }}variant="secondary" size="lg" onClick={() => { setNavigation("recap") }}>Torna indietro</Button>
+            <Container style={{paddingTop: 30}} className="text-center">
+              <Button style={{ marginBottom: 10 }}variant="secondary" size="lg" onClick={() => { setNavigation("recap") }}>Torna indietro</Button><br/>
               <Button size="lg" onClick={() => { handlePrint(); setNavigation("done") }}>Conferma e stampa</Button>
             </Container>
           </main> :
         navigation === "done" ?
           <main>
-            <Container fluid className="text-center">
+            <Container className="text-center">
               <p style={{ marginTop: 10 }}>Ordine #{count} concluso! Se c'è stato qualche problema, torna indietro o stampa di nuovo. Altrimenti, procedi con un nuovo ordine.</p>
               <Button style={{ marginBottom: 10 }} variant="secondary" size="lg" onClick={() => { setNavigation("pay") }}>Torna indietro</Button><br/>
               <Button style={{ marginBottom: 10 }} variant="secondary" size="lg" onClick={() => { handlePrint() }}>Stampa di nuovo</Button><br/>

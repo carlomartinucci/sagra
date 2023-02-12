@@ -13,6 +13,16 @@ import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Image from 'react-bootstrap/Image'
+
+import cent50 from '../../images/050.jpeg'
+import eur1 from '../../images/1.jpeg'
+import eur2 from '../../images/2.jpeg'
+import eur5 from '../../images/5.jpeg'
+import eur10 from '../../images/10.jpeg'
+import eur20 from '../../images/20.jpeg'
+import eur50 from '../../images/50.jpeg'
+import eur100 from '../../images/100.jpeg'
 
 export function Total() {
   const products = useAppSelector(selectProducts);
@@ -28,24 +38,43 @@ export function Total() {
 
     <h3 style={{paddingTop: 30}}>Totale pagato:</h3>
     <h2>{displayEuroCents(given)}</h2>
-    <div className="d-grid gap-1" style={{width: 300, margin: "auto"}}>
-      <div className="btn-group" role="group" aria-label="Basic example">
-        <Button variant="outline-primary" onClick={() => { setGiven(0) }}>Cancella</Button>
-        <Button variant="outline-primary" onClick={() => { setGiven((given) => given + 50) }}>{displayEuroCents(50)}</Button>
-      </div>
 
-      <div className="btn-group" role="group" aria-label="Basic example">
-        <Button variant="outline-primary" onClick={() => { setGiven((given) => given + 100) }}>{displayEuroCents(100)}</Button>
-        <Button variant="outline-primary" onClick={() => { setGiven((given) => given + 200) }}>{displayEuroCents(200)}</Button>
-        <Button variant="outline-primary" onClick={() => { setGiven((given) => given + 500) }}>{displayEuroCents(500)}</Button>
-      </div>
+    <Row style={{paddingTop: 30}}>
+      <Button variant="outline-primary" onClick={() => { setGiven(0) }}>Cancella</Button>
+    </Row>
 
-      <div className="btn-group" role="group" aria-label="Basic example">
-        <Button variant="outline-primary" onClick={() => { setGiven((given) => given + 1000) }}>{displayEuroCents(1000)}</Button>
-        <Button variant="outline-primary" onClick={() => { setGiven((given) => given + 2000) }}>{displayEuroCents(2000)}</Button>
-        <Button variant="outline-primary" onClick={() => { setGiven((given) => given + 5000) }}>{displayEuroCents(5000)}</Button>
-      </div>
-    </div>
+    <Row style={{paddingTop: 10}}>
+      <Col xs={4} className="d-flex justify-content-center align-items-center">
+        <Image style={{margin: "auto"}} roundedCircle thumbnail src={cent50} alt={displayEuroCents(50)} onClick={() => { setGiven((given) => given + 50) }} />
+      </Col>
+      <Col xs={4} className="d-flex justify-content-center align-items-center">
+        <Image style={{margin: "auto"}} roundedCircle thumbnail src={eur1} alt={displayEuroCents(100)} onClick={() => { setGiven((given) => given + 100) }} />
+      </Col>
+      <Col xs={4} className="d-flex justify-content-center align-items-center">
+        <Image style={{margin: "auto"}} roundedCircle thumbnail src={eur2} alt={displayEuroCents(200)} onClick={() => { setGiven((given) => given + 200) }} />
+      </Col>
+    </Row>
+
+    <Row>
+      <Col xs={4} className="d-flex justify-content-center align-items-center">
+        <Image style={{margin: "auto"}} thumbnail src={eur5} alt={displayEuroCents(500)} onClick={() => { setGiven((given) => given + 500) }} />
+      </Col>
+      <Col xs={4} className="d-flex justify-content-center align-items-center">
+        <Image style={{margin: "auto"}} thumbnail src={eur10} alt={displayEuroCents(1000)} onClick={() => { setGiven((given) => given + 1000) }} />
+      </Col>
+      <Col xs={4} className="d-flex justify-content-center align-items-center">
+        <Image style={{margin: "auto"}} thumbnail src={eur20} alt={displayEuroCents(2000)} onClick={() => { setGiven((given) => given + 2000) }} />
+      </Col>
+    </Row>
+
+    <Row>
+      <Col xs={4} className="d-flex justify-content-center align-items-center">
+        <Image style={{margin: "auto"}} thumbnail src={eur50} alt={displayEuroCents(5000)} onClick={() => { setGiven((given) => given + 5000) }} />
+      </Col>
+      <Col xs={4} className="d-flex justify-content-center align-items-center">
+        <Image style={{margin: "auto"}} thumbnail src={eur100} alt={displayEuroCents(10000)} onClick={() => { setGiven((given) => given + 10000) }} />
+      </Col>
+    </Row>
 
     <h3 style={{paddingTop: 30}}>Resto:</h3>
     {resto >= 0 ? <h2>{displayEuroCents(resto)}</h2> : <h3>(mancano {displayEuroCents(-resto)})</h3>}
