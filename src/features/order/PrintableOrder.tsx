@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { useAppSelector } from '../../app/hooks';
 import {
@@ -9,9 +9,48 @@ import {
   selectCount,
 } from '../counter/counterSlice';
 
+import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+
+export function Total() {
+  const products = useAppSelector(selectProducts);
+  const total = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
+
+  const [given, setGiven] = useState(0)
+
+  const resto = given - total
+
+  return <Container fluid style={{paddingTop: 30, textAlign: "center"}} >
+    <h3>Totale da pagare:</h3>
+    <h2>{displayEuroCents(total)}</h2>
+
+    <h3 style={{paddingTop: 30}}>Totale pagato:</h3>
+    <h2>{displayEuroCents(given)}</h2>
+    <div className="d-grid gap-1" style={{width: 300, margin: "auto"}}>
+      <div className="btn-group" role="group" aria-label="Basic example">
+        <Button variant="outline-primary" onClick={() => { setGiven(0) }}>Cancella</Button>
+        <Button variant="outline-primary" onClick={() => { setGiven((given) => given + 50) }}>{displayEuroCents(50)}</Button>
+      </div>
+
+      <div className="btn-group" role="group" aria-label="Basic example">
+        <Button variant="outline-primary" onClick={() => { setGiven((given) => given + 100) }}>{displayEuroCents(100)}</Button>
+        <Button variant="outline-primary" onClick={() => { setGiven((given) => given + 200) }}>{displayEuroCents(200)}</Button>
+        <Button variant="outline-primary" onClick={() => { setGiven((given) => given + 500) }}>{displayEuroCents(500)}</Button>
+      </div>
+
+      <div className="btn-group" role="group" aria-label="Basic example">
+        <Button variant="outline-primary" onClick={() => { setGiven((given) => given + 1000) }}>{displayEuroCents(1000)}</Button>
+        <Button variant="outline-primary" onClick={() => { setGiven((given) => given + 2000) }}>{displayEuroCents(2000)}</Button>
+        <Button variant="outline-primary" onClick={() => { setGiven((given) => given + 5000) }}>{displayEuroCents(5000)}</Button>
+      </div>
+    </div>
+
+    <h3 style={{paddingTop: 30}}>Resto:</h3>
+    {resto >= 0 ? <h2>{displayEuroCents(resto)}</h2> : <h3>(mancano {displayEuroCents(-resto)})</h3>}
+  </Container>
+}
 
 export function RecapOrder() {
   const products = useAppSelector(selectProducts);

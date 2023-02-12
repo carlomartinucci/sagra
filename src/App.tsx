@@ -6,7 +6,7 @@ import Navbar from 'react-bootstrap/Navbar';
 import Container from 'react-bootstrap/Container';
 
 import { Order } from './features/order/Order';
-import { RecapOrder, PrintableOrder } from './features/order/PrintableOrder';
+import { RecapOrder, PrintableOrder, Total } from './features/order/PrintableOrder';
 import { useAppSelector, useAppDispatch } from './app/hooks';
 import {
   selectCount,
@@ -45,19 +45,26 @@ function App() {
           <Order />
 
           <Container fluid className="text-center">
-            <Button size="lg" onClick={() => { setNavigation("confirm") }}>Conferma e paga</Button>
+            <Button size="lg" onClick={() => { setNavigation("recap") }}>Procedi al riepilogo</Button>
           </Container>
         </main> :
-      navigation === "confirm" ?
+      navigation === "recap" ?
         <main>
           <RecapOrder />
 
           <Container fluid className="text-center">
             <Button style={{ marginRight: 20 }}variant="secondary" size="lg" onClick={() => { setNavigation("order") }}>Torna all'ordine</Button>
-            <Button size="lg" onClick={() => { handlePrint(); setNavigation("order") }}>Conferma e stampa</Button>
+            <Button size="lg" onClick={() => { setNavigation("pay") }}>Procedi al pagamento</Button>
           </Container>
         </main> :
-        <div></div> 
+        <main>
+          <Total />
+
+          <Container style={{paddingTop: 30}} fluid className="text-center">
+            <Button style={{ marginRight: 20 }}variant="secondary" size="lg" onClick={() => { setNavigation("order") }}>Torna all'ordine</Button>
+            <Button size="lg" onClick={() => { handlePrint(); setNavigation("order") }}>Conferma e stampa</Button>
+          </Container>
+        </main>
     }
 
     <div className="d-none d-print-block" ref={componentRef}>

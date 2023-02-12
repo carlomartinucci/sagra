@@ -86,10 +86,12 @@ function ProductRow(props: any) {
         </Modal.Header>
         <Modal.Body>
 
-        <Form.Group className="mb-3" controlId="notes">
-          <Form.Label>Aggiungi o modifica le note per la cucina</Form.Label>
-          <Form.Control autoFocus value={props.product.notes} onChange={event => dispatch(editNotes({key: props.productKey, notes: event.target.value}))} />
-        </Form.Group>
+        <Form onSubmit={(event) => { event.preventDefault(); setIsEditing(false) }}>
+          <Form.Group className="mb-3" controlId="notes">
+            <Form.Label>Aggiungi o modifica le note per la cucina</Form.Label>
+            <Form.Control autoFocus value={props.product.notes} onChange={event => dispatch(editNotes({key: props.productKey, notes: event.target.value}))} />
+          </Form.Group>
+        </Form>
 
         </Modal.Body>
         <Modal.Footer>
