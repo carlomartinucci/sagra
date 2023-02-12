@@ -52,16 +52,24 @@ function ProductRow(props: any) {
   const totalPriceCents = props.product.euroCents * props.product.quantity
   return <React.Fragment>
     <Row className={styles.orderRow}>
-      <Col xs="auto">
+      {/* Nome del piatto */}
+      <Col className="my-auto">
         <Button
           size="sm"
+          className="me-2"
           variant="outline-info"
           onClick={() => setIsEditing(true)}>
           <EditIcon />
         </Button>
+        {props.product.name}
       </Col>
-      <Col className="my-auto">{props.product.name}</Col>
-      <Col className="my-auto text-end" xs={2}>{displayEuroCents(props.product.euroCents)}</Col>
+
+      {/* Prezzo unitario */}
+      <Col className="my-auto text-end" xs={2}>
+        {displayEuroCents(props.product.euroCents)}
+      </Col>
+
+      {/* + Quantità - */}
       <Col xs="auto">
         <InputGroup style={{ width: 115 }}>
           <Button variant="outline-secondary" disabled={props.product.quantity === 0} onClick={() => dispatch(decrement(props.productKey))}>
@@ -73,6 +81,8 @@ function ProductRow(props: any) {
           </Button>
         </InputGroup>
       </Col>
+
+      {/* Subtotale */}
       <Col className="my-auto text-end" xs={2}>{totalPriceCents > 0 ? displayEuroCents(totalPriceCents) : ""}</Col>
     </Row>
 
