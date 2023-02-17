@@ -116,7 +116,7 @@ export function PrintableOrder() {
 
   const totalEuroCents = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
   const totalClientLines = Object.values(products).reduce((total, product) => total + 1, 0)
-  const totalKitchenLines = Object.values(products).reduce((total, product) => total + (product.quantity > 0 ? 1 : 0) + (product.notes != "" ? 0.5 : 0), 0)
+  const totalKitchenLines = Object.values(products).reduce((total, product) => total + (product.quantity > 0 ? 1 : 0) + (product.notes !== "" ? 0.5 : 0), 0)
 
   const isClientFontBig = totalClientLines < 15
   const isKitchenFontBig = totalKitchenLines < 12

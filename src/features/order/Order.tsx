@@ -55,9 +55,9 @@ function ProductRow(props: any) {
       {/* Nome del piatto */}
       <Col className="my-auto">
         {props.product.name}
-        <a onClick={() => setIsEditing(true)} className="">
-          <EditIcon className="ms-2" />
-        </a>
+        <Button variant="link" onClick={() => setIsEditing(true)}>
+          <EditIcon className="mb-1" />
+        </Button>
       </Col>
 
       {/* Prezzo unitario */}
@@ -84,7 +84,7 @@ function ProductRow(props: any) {
 
     {props.product.notes && <><Row className={styles.notesRow}>
       <Col className="my-auto">
-        <a onClick={() => setIsEditing(true)} className="">Note</a>: {props.product.notes}
+        <Button variant="link" onClick={() => setIsEditing(true)} className="m-0 mb-1 p-0">Note</Button>: {props.product.notes}
         {props.product.quantity === 0 && <span className="text-danger">&nbsp; Attenzione, hai aggiunto una nota ma la quantità è 0. Sei sicuro?</span>}
       </Col>
     </Row><Row/></>}
