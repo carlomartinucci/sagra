@@ -62,12 +62,7 @@ function App() {
           </main> :
         navigation === "pay" ?
           <main>
-            <Total />
-
-            <Container style={{paddingTop: 30}} className="text-center">
-              <Button style={{ marginBottom: 10 }}variant="secondary" size="lg" onClick={() => { setNavigation("recap") }}>Torna indietro</Button><br/>
-              <Button size="lg" onClick={() => { handlePrint(); setNavigation("done") }}>Conferma e stampa</Button>
-            </Container>
+            <Total onBack={() => { setNavigation("recap") }} onConfirm={() => { handlePrint(); setNavigation("done") }} />
           </main> :
         navigation === "done" ?
           <main>
