@@ -22,12 +22,13 @@ import InputGroup from 'react-bootstrap/InputGroup';
 
 import Modal from 'react-bootstrap/Modal';
 
-export function Order() {
+export function Order({ coperti, tavolo }: { coperti: string, tavolo: string }) {
   const products = useAppSelector(selectProducts);
 
   const totalEuroCents = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
 
   return <Container fluid className={styles.order}>
+    <Row><Col className="text-center text-bg-info"><h3 className="my-2">Tavolo {tavolo}. {coperti}</h3></Col></Row>
     <Row className="small text-muted">
       <Col className="my-auto">Nome del piatto</Col>
       <Col className="my-auto text-end" xs={2}>Prezzo unitario</Col>

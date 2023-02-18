@@ -89,16 +89,17 @@ export function Total({ onBack, onConfirm }: { onBack: () => void, onConfirm: ()
   </>
 }
 
-export function RecapOrder() {
+export function RecapOrder({ coperti, tavolo }: { coperti: string, tavolo: string }) {
   const products = useAppSelector(selectProducts);
 
   const totalEuroCents = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
 
-  return <Container fluid style={{paddingTop: 30}}>
+  return <Container fluid>
+    <Row><Col className="text-center text-bg-info mb-3"><h3 className="my-2">Tavolo {tavolo}. {coperti}</h3></Col></Row>
     { Object.entries(products).filter(item => item[1].quantity > 0).map(([key, product]) => {
       return <Row key={key} className={product.quantity === 0 ? "text-muted" : ""}>
-        <Col xs={12}>
-          <span style={{ fontSize: "1.4rem", fontWeight: "bold" }}>{product.quantity}</span> {product.name}
+        <Col xs={12} className="text-center">
+          <h4>{product.quantity} {product.name}</h4>
           {product.notes && <span> (Note: <span style={{ fontWeight: "bold" }}>{product.notes}</span>)</span>}
         </Col>
       </Row>
@@ -110,7 +111,7 @@ export function RecapOrder() {
 
 }
 
-export function PrintableOrder() {
+export function PrintableOrder({ coperti, tavolo }: { coperti: string, tavolo: string }) {
   const count = useAppSelector(selectCount)
   const products = useAppSelector(selectProducts);
 
@@ -123,7 +124,15 @@ export function PrintableOrder() {
 
   return <>
   <Container fluid style={{ padding: "40px 40px", fontSize: isClientFontBig ? "1.3rem" : "1rem", lineHeight: isClientFontBig ? 1.7 : 1.5 }}>
-    <h1 style={{ fontSize: "6rem" }}>{count}</h1>
+    <Row>
+      <Col xs={6}>
+        <h1 style={{ fontSize: "6rem" }}>{count}</h1>
+      </Col>
+      <Col xs={6} className="text-end align-self-center">
+        <h2>Tavolo {tavolo}</h2>
+        <h2>{coperti}</h2>
+      </Col>
+    </Row>
 
     { Object.entries(products).map(([key, product]) => {
       const totalPriceCents = product.euroCents * product.quantity
@@ -148,7 +157,15 @@ export function PrintableOrder() {
       <Col className="text-end">Totale: {displayEuroCents(totalEuroCents)}</Col>
     </Row>
 
-    <h1 style={{ fontSize: "6rem" }}>{count}</h1>
+    <Row>
+      <Col xs={6}>
+        <h1 style={{ fontSize: "6rem" }}>{count}</h1>
+      </Col>
+      <Col xs={6} className="text-end align-self-center">
+        <h2>Tavolo {tavolo}</h2>
+        <h2>{coperti}</h2>
+      </Col>
+    </Row>
 
     { Object.entries(products).filter(item => item[1].quantity > 0).map(([key, product]) => {
       return <Row key={key} className={product.quantity === 0 ? "text-muted" : ""}>
