@@ -35,6 +35,15 @@ function App() {
     content: () => componentRef.current
   });
 
+  const handleNewOrder = () => {
+    setCoperti("")
+    setIsAsporto(false)
+    setTavolo("")
+    dispatch(increment())
+    dispatch(reset())
+    setNavigation("pre")
+  }
+
   return (
     <>
     <div className="d-print-none mb-5">
@@ -100,7 +109,7 @@ function App() {
               <p style={{ marginTop: 10 }}>Ordine #{count} concluso! Se c'è stato qualche problema, torna indietro o stampa di nuovo. Altrimenti, procedi con un nuovo ordine.</p>
               <Button style={{ marginBottom: 10 }} variant="secondary" size="lg" onClick={() => { setNavigation("pay") }}>Torna indietro</Button><br/>
               <Button style={{ marginBottom: 10 }} variant="secondary" size="lg" onClick={() => { handlePrint() }}>Stampa di nuovo</Button><br/>
-              <Button size="lg" onClick={() => { dispatch(increment()); dispatch(reset()); setNavigation("pre") }}>Nuovo ordine</Button>
+              <Button size="lg" onClick={handleNewOrder}>Nuovo ordine</Button>
             </Container>
           </main> :
           <div>Questo non dovrebbe mai succedere. Se vedi questa schermata, ricordati la parola "{navigation}" e aggiorna la pagina. Grazie.</div>
