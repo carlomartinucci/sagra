@@ -19,85 +19,61 @@ export function displayEuroCents(euroCents: number){
 const initialState: OrderState = {
   products: {
     tortelli1: {
-      name: "Tordelli* classici al ragù",
-      quantity: 0,
-      euroCents: 1000,
-      notes: ""
-    },
-    tortelli2: {
-      name: "Tordelli* ai funghi porcini",
-      quantity: 0,
-      euroCents: 1000,
-      notes: ""
-    },
-    tagliatelle1: {
-      name: "Tagliatelle* al ragù",
-      quantity: 0,
-      euroCents: 800,
-      notes: ""
-    },
-    tagliatelle2: {
-      name: "Tagliatelle* ai funghi porcini",
-      quantity: 0,
-      euroCents: 800,
-      notes: ""
-    },
-    rustico: {
-      name: "Piatto Rustico",
+      name: "Tordelli al ragù",
       quantity: 0,
       euroCents: 700,
       notes: ""
     },
+    tortelli2: {
+      name: "Pasta ripiena al forno",
+      quantity: 0,
+      euroCents: 700,
+      notes: ""
+    },
+    tagliatelle1: {
+      name: "Lasagne di mare al forno",
+      quantity: 0,
+      euroCents: 700,
+      notes: ""
+    },
+    tagliatelle2: {
+      name: "Girelline ricotta e spinaci",
+      quantity: 0,
+      euroCents: 700,
+      notes: ""
+    },
+    rustico: {
+      name: "Stinco con patate",
+      quantity: 0,
+      euroCents: 1200,
+      notes: ""
+    },
     salumi: {
-      name: "Piatto di salumi tradizionali",
+      name: "Mezzo stinco con patate",
       quantity: 0,
       euroCents: 700,
       notes: ""
     },
     baccala: {
-      name: "Baccalà Marinato",
+      name: "Cozze ripiene",
       quantity: 0,
       euroCents: 700,
       notes: ""
     },
     panzanelle1: {
-      name: "Panzanelle Semplici",
+      name: "Piatto freddo: bresaola, rucola, scaglie di parmigiano, aceto balsamico",
       quantity: 0,
-      euroCents: 100,
+      euroCents: 700,
       notes: ""
     },
     panzanelle2: {
-      name: "Panzanelle con Nutella",
-      quantity: 0,
-      euroCents: 300,
-      notes: ""
-    },
-    stinco1: {
-      name: "Stinco* alla Santese con patate",
-      quantity: 0,
-      euroCents: 1400,
-      notes: ""
-    },
-    mezzostinco: {
-      name: "Metà Stinco* alla Santese con patate",
-      quantity: 0,
-      euroCents: 800,
-      notes: ""
-    },
-    patate: {
-      name: "Patatine fritte",
-      quantity: 0,
-      euroCents: 300,
-      notes: ""
-    },
-    torta: {
-      name: "Torta di Riso",
+      name: "Torta di riso",
       quantity: 0,
       euroCents: 400,
       notes: ""
     },
-    crostata: {
-      name: "Crostata Pere e Cioccolato",
+    stinco1: {
+      name: "Torta al cioccolato",
       quantity: 0,
       euroCents: 400,
       notes: ""
