@@ -75,8 +75,8 @@ function App() {
             <Pre coperti={coperti} setCoperti={setCoperti} isAsporto={isAsporto} setIsAsporto={setIsAsporto} tavolo={tavolo} setTavolo={setTavolo} />
 
             <Container className="text-center">
-              <Button size="lg" disabled={(!isAsporto && coperti==="") || tavolo===""} onClick={() => { setNavigation("order") }}>Procedi al menù</Button>
-              { ((!isAsporto && coperti==="") || tavolo==="") && <p className="text-danger">
+              <Button size="lg" disabled={!isAsporto && (coperti==="" || tavolo==="")} onClick={() => { setNavigation("order") }}>Procedi al menù</Button>
+              { (!isAsporto && (coperti==="" || tavolo==="")) && <p className="text-danger">
                 Inserisci {(!isAsporto && coperti==="") && "il numero di coperti"}{!isAsporto && coperti==="" && tavolo==="" && " e "}{tavolo==="" && "il numero del tavolo"} per continuare
               </p> }
             </Container>
