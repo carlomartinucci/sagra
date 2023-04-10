@@ -23,6 +23,7 @@ import eur10 from '../../images/10.jpeg'
 import eur20 from '../../images/20.jpeg'
 import eur50 from '../../images/50.jpeg'
 import eur100 from '../../images/100.jpeg'
+import header from '../../images/header.jpg'
 
 export function Total({ onBack, onConfirm }: { onBack: () => void, onConfirm: () => void }) {
   const products = useAppSelector(selectProducts);
@@ -124,6 +125,7 @@ export function PrintableOrder({ coperti, tavolo }: { coperti: string, tavolo: s
 
   return <>
   <Container fluid style={{ padding: "40px 40px", fontSize: isClientFontBig ? "1.3rem" : "1rem", lineHeight: isClientFontBig ? 1.7 : 1.5 }}>
+    <Image style={{width: "100%"}} src={header} alt="Festa della Divina Misericordia. Canevara (MS), domenica 16 aprile 2023" />
     <Row>
       <Col xs={6}>
         <h1 style={{ fontSize: "6rem" }}>{count}</h1>
@@ -150,6 +152,7 @@ export function PrintableOrder({ coperti, tavolo }: { coperti: string, tavolo: s
   <Break/>
 
   <Container fluid style={{ padding: "65px 50px", fontSize: isKitchenFontBig ? "1.3rem" : "1rem" }}>
+    <Image style={{width: "100%"}} src={header} alt="Festa della Divina Misericordia. Canevara (MS), domenica 16 aprile 2023" />
     <Row>
       <Col>
         PER LA CUCINA
