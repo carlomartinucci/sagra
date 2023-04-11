@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
+import useWakeLock from './useWakeLock';
 
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
@@ -25,6 +26,7 @@ function App() {
   const [navigation, setNavigation] = useState("pre")
   const count = useAppSelector(selectCount)
   const dispatch = useAppDispatch();
+  const wakeLock = useWakeLock();
 
   const [coperti, setCoperti] = useState("");
   const [isAsporto, setIsAsporto] = useState(false);
@@ -50,7 +52,7 @@ function App() {
       <Navbar bg="dark" variant="dark">
         <Container fluid>
           <Navbar.Brand onClick={() => setNavigation("pre")}>
-            Ordine #{count}
+            {wakeLock ? '💡' : '📺'} Ordine #{count}
           </Navbar.Brand>
           <Nav className="me-auto">
             <Nav.Link active={navigation === "order"} disabled={["pre"].includes(navigation)} onClick={() => setNavigation("order")}>
@@ -142,6 +144,7 @@ function Pre({coperti, setCoperti, isAsporto, setIsAsporto, tavolo, setTavolo} :
   const handleTapAsporto = () => {
     setCoperti("")
     setIsAsporto(true)
+    setTavolo("")
   }
 
   return <Container className="my-5 text-center">
