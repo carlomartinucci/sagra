@@ -16,6 +16,8 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
+import Badge from 'react-bootstrap/Badge';
+
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
@@ -55,7 +57,9 @@ function ProductRow(props: any) {
     <Row className={styles.orderRow}>
       {/* Nome del piatto */}
       <Col className="my-auto">
-        {props.product.name}
+        <Badge pill bg="" style={{backgroundColor: props.product.color, color: getTextColor(props.product.color), fontSize: "1em"}}>
+          {showName(props.product.name)}
+          </Badge>
         <Button variant="link" onClick={() => setIsEditing(true)}>
           <EditIcon className="mb-1" />
         </Button>
@@ -111,4 +115,29 @@ function ProductRow(props: any) {
         </Modal.Footer>
     </Modal>
   </React.Fragment>
+}
+
+function showName(name: string | string[]): JSX.Element {
+  if (typeof name === 'string') {
+    return <>{name}</>;
+  } else {
+    return (
+      <>
+        {name.map((n, i) => (
+          <React.Fragment key={i}>
+            {n}
+            {i < name.length - 1 && <br />}
+          </React.Fragment>
+        ))}
+      </>
+    );
+  }
+}
+
+function getTextColor(bgColor: string): string {
+    let r = parseInt(bgColor.slice(1, 3), 16);
+    let g = parseInt(bgColor.slice(3, 5), 16);
+    let b = parseInt(bgColor.slice(5, 7), 16);
+    let brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness > 128 ? '#000' : '#fff';
 }

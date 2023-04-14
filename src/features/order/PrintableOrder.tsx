@@ -139,7 +139,7 @@ export function PrintableOrder({ coperti, tavolo }: { coperti: string, tavolo: s
     { Object.entries(products).map(([key, product]) => {
       const totalPriceCents = product.euroCents * product.quantity
       return <Row key={key}>
-        <Col className="me-0 pe-0" xs="auto">{product.quantity} {product.name} ({displayEuroCents(product.euroCents)})</Col>
+        <Col className="me-0 pe-0" xs="auto">{product.quantity} &nbsp; &nbsp; {showName(product.name)} ({displayEuroCents(product.euroCents)})</Col>
         <Col className="text-end ms-0 ps-0 mt-1" style={{ fontSize: isClientFontBig ? "1rem" : "0.8rem" }}>{totalPriceCents > 0 ? displayEuroCents(totalPriceCents) : ""}</Col>
       </Row>
     })}
@@ -173,8 +173,8 @@ export function PrintableOrder({ coperti, tavolo }: { coperti: string, tavolo: s
     { Object.entries(products).filter(item => item[1].quantity > 0).map(([key, product]) => {
       return <Row key={key} className={product.quantity === 0 ? "text-muted" : ""}>
         <Col xs={12}>
-          <span style={{ fontSize: isKitchenFontBig ? "1.5rem" : "1.3rem", fontWeight: "bold" }}>{product.quantity}</span> {product.name}
-          {product.notes && <span> (Note: <span style={{ fontWeight: "bold" }}>{product.notes}</span>)</span>}
+          <span style={{ fontSize: isKitchenFontBig ? "1.5rem" : "1.3rem", fontWeight: "bold" }}>{product.quantity}</span> &nbsp; &nbsp; {showName(product.name)}
+          {product.notes && <span><br />&nbsp;&nbsp;&nbsp;(Note: <span style={{ fontWeight: "bold" }}>{product.notes}</span>)</span>}
         </Col>
       </Row>
     })}
@@ -185,4 +185,21 @@ export function PrintableOrder({ coperti, tavolo }: { coperti: string, tavolo: s
 
 function Break() {
   return <div style={{clear: "both", pageBreakAfter: "always"}}></div>
+}
+
+function showName(name: string | string[]): JSX.Element {
+  if (typeof name === 'string') {
+    return <>{name}</>;
+  } else {
+    return (
+      <>
+        {name.map((n, i) => (
+          <React.Fragment key={i}>
+            {n}
+            {i < name.length - 1 && <><br />&nbsp;&nbsp;&nbsp;</>}
+          </React.Fragment>
+        ))}
+      </>
+    );
+  }
 }

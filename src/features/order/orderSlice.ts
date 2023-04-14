@@ -6,7 +6,8 @@ export interface OrderState {
 }
 
 export interface Product {
-  name: string,
+  name: string | string[],
+  color: string,
   quantity: number,
   euroCents: number,
   notes: string
@@ -18,62 +19,72 @@ export function displayEuroCents(euroCents: number){
 
 const initialState: OrderState = {
   products: {
-    tortelli1: {
+    tordelli: {
       name: "Tordelli al ragù",
+      color: "#e52421",
       quantity: 0,
       euroCents: 700,
       notes: ""
     },
-    tortelli2: {
+    pastaripiena: {
       name: "Pasta ripiena al forno",
+      color: "#ffcc00",
       quantity: 0,
       euroCents: 700,
       notes: ""
     },
-    tagliatelle1: {
+    lasagne: {
       name: "Lasagne di mare al forno",
+      color: "#2a4b9b",
       quantity: 0,
       euroCents: 700,
       notes: ""
     },
-    tagliatelle2: {
+    girelline: {
       name: "Girelline ricotta e spinaci",
+      color: "#339933",
       quantity: 0,
       euroCents: 700,
       notes: ""
     },
-    rustico: {
+    stinco: {
       name: "Stinco con patate",
+      color: "#7d4e24",
       quantity: 0,
       euroCents: 1200,
       notes: ""
     },
-    salumi: {
+    mezzostinco: {
       name: "Mezzo stinco con patate",
+      color: "#fdeb19",
       quantity: 0,
       euroCents: 700,
       notes: ""
     },
-    baccala: {
+    cozze: {
       name: "Cozze ripiene",
+      color: "#00005a",
       quantity: 0,
       euroCents: 700,
       notes: ""
     },
-    panzanelle1: {
-      name: "Piatto freddo: bresaola, rucola, scaglie di parmigiano, aceto balsamico",
+    freddo: {
+      name: ["Piatto freddo: bresaola, rucola, ", "scaglie di parmigiano, aceto balsamico"],
+      color: "#880000",
       quantity: 0,
       euroCents: 700,
       notes: ""
     },
-    panzanelle2: {
+    riso: {
       name: "Torta di riso",
+      color: "#ea5b0c",
       quantity: 0,
       euroCents: 400,
       notes: ""
     },
-    stinco1: {
+    cioccolato: {
       name: "Torta al cioccolato",
+      color: "#432918",
       quantity: 0,
       euroCents: 400,
       notes: ""
