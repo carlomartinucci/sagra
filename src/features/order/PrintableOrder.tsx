@@ -15,6 +15,8 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Image from 'react-bootstrap/Image'
 
+import Table from 'react-bootstrap/Table';
+
 import cent50 from '../../images/050.jpeg'
 import eur1 from '../../images/1.jpeg'
 import eur2 from '../../images/2.jpeg'
@@ -100,8 +102,8 @@ export function RecapOrder({ coperti, tavolo }: { coperti: string, tavolo: strin
     { Object.entries(products).filter(item => item[1].quantity > 0).map(([key, product]) => {
       return <Row key={key} className={product.quantity === 0 ? "text-muted" : ""}>
         <Col xs={12} className="text-center">
-          <h4>{product.quantity} {product.name}</h4>
-          {product.notes && <span> (Note: <span style={{ fontWeight: "bold" }}>{product.notes}</span>)</span>}
+          <h4 className={product.notes ? "mb-0" : ""}>{product.quantity} {product.name}</h4>
+          {product.notes && <div className="mb-2">(Note: <span style={{ fontWeight: "bold" }}>{product.notes}</span>)</div>}
         </Col>
       </Row>
     })}
@@ -131,18 +133,31 @@ export function PrintableOrder({ coperti, tavolo }: { coperti: string, tavolo: s
         <h1 style={{ fontSize: "6rem" }}>{count}</h1>
       </Col>
       <Col xs={6} className="text-end align-self-center">
-        <h2>Tavolo {tavolo}</h2>
+        <h2>{tavolo ? `Tavolo ${tavolo}` : ""}</h2>
         <h2>{coperti}</h2>
       </Col>
     </Row>
 
-    { Object.entries(products).map(([key, product]) => {
-      const totalPriceCents = product.euroCents * product.quantity
-      return <Row key={key}>
-        <Col className="me-0 pe-0" xs="auto">{product.quantity} &nbsp; &nbsp; {showName(product.name)} ({displayEuroCents(product.euroCents)})</Col>
-        <Col className="text-end ms-0 ps-0 mt-1" style={{ fontSize: isClientFontBig ? "1rem" : "0.8rem" }}>{totalPriceCents > 0 ? displayEuroCents(totalPriceCents) : ""}</Col>
-      </Row>
-    })}
+    <Table bordered size="sm">
+      <tbody>
+        { Object.entries(products).map(([key, product]) => {
+          const totalPriceCents = product.euroCents * product.quantity
+          
+          return <tr key={key}>
+            <td className="text-center" style={{verticalAlign: "middle", fontWeight: product.quantity > 0 ? "bold" : ""}}>
+              &nbsp;
+              {product.quantity}
+              &nbsp;
+            </td>
+            <td style={{verticalAlign: "middle"}}>
+              {product.name} ({displayEuroCents(product.euroCents)})
+              {product.notes && product.quantity > 0 && <span> (Note: {product.notes})</span>}
+            </td>
+            <td className="text-end" style={{verticalAlign: "middle"}}><span style={{ fontSize: isClientFontBig ? "1rem" : "0.8rem" }}>{totalPriceCents > 0 ? displayEuroCents(totalPriceCents) : ""}</span></td>
+          </tr>
+        })}
+      </tbody>
+    </Table>
 
     <Row>
       <Col className="text-end">Totale: {displayEuroCents(totalEuroCents)}</Col>
@@ -152,7 +167,6 @@ export function PrintableOrder({ coperti, tavolo }: { coperti: string, tavolo: s
   <Break/>
 
   <Container fluid style={{ padding: "65px 50px", fontSize: isKitchenFontBig ? "1.3rem" : "1rem" }}>
-    <Image style={{width: "100%"}} src={header} alt="Festa della Divina Misericordia. Canevara (MS), domenica 16 aprile 2023" />
     <Row>
       <Col>
         PER LA CUCINA
@@ -160,24 +174,33 @@ export function PrintableOrder({ coperti, tavolo }: { coperti: string, tavolo: s
       <Col className="text-end">Totale: {displayEuroCents(totalEuroCents)}</Col>
     </Row>
 
+    <Image style={{width: "100%"}} src={header} alt="Festa della Divina Misericordia. Canevara (MS), domenica 16 aprile 2023" />
+
     <Row>
       <Col xs={6}>
         <h1 style={{ fontSize: "6rem" }}>{count}</h1>
       </Col>
       <Col xs={6} className="text-end align-self-center">
-        <h2>Tavolo {tavolo}</h2>
+        <h2>{tavolo ? `Tavolo ${tavolo}` : ""}</h2>
         <h2>{coperti}</h2>
       </Col>
     </Row>
 
-    { Object.entries(products).filter(item => item[1].quantity > 0).map(([key, product]) => {
-      return <Row key={key} className={product.quantity === 0 ? "text-muted" : ""}>
-        <Col xs={12}>
-          <span style={{ fontSize: isKitchenFontBig ? "1.5rem" : "1.3rem", fontWeight: "bold" }}>{product.quantity}</span> &nbsp; &nbsp; {showName(product.name)}
-          {product.notes && <span><br />&nbsp;&nbsp;&nbsp;(Note: <span style={{ fontWeight: "bold" }}>{product.notes}</span>)</span>}
-        </Col>
-      </Row>
-    })}
+    <Table bordered size="sm">
+      <tbody>
+        { Object.entries(products).filter(item => item[1].quantity > 0).map(([key, product]) => {
+          return <tr key={key} className={product.quantity === 0 ? "text-muted" : ""}>
+            <td className="text-center" style={{verticalAlign: "middle"}}>
+              <span style={{ fontSize: isKitchenFontBig ? "1.5rem" : "1.3rem", fontWeight: "bold" }}>{product.quantity}</span>
+            </td>
+            <td style={{verticalAlign: "middle"}}>
+              {product.name}
+              {product.notes && <span> (Note: <span style={{ fontWeight: "bold" }}>{product.notes}</span>)</span>}
+            </td>
+          </tr>
+        })}
+      </tbody>
+    </Table>
   </Container>
   </>
 }
@@ -187,19 +210,3 @@ function Break() {
   return <div style={{clear: "both", pageBreakAfter: "always"}}></div>
 }
 
-function showName(name: string | string[]): JSX.Element {
-  if (typeof name === 'string') {
-    return <>{name}</>;
-  } else {
-    return (
-      <>
-        {name.map((n, i) => (
-          <React.Fragment key={i}>
-            {n}
-            {i < name.length - 1 && <><br />&nbsp;&nbsp;&nbsp;</>}
-          </React.Fragment>
-        ))}
-      </>
-    );
-  }
-}

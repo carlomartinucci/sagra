@@ -57,7 +57,7 @@ function ProductRow(props: any) {
     <Row className={styles.orderRow}>
       {/* Nome del piatto */}
       <Col className="my-auto">
-        <Badge pill bg="" style={{backgroundColor: props.product.color, color: getTextColor(props.product.color), fontSize: "1em"}}>
+        <Badge pill bg="" style={{backgroundColor: props.product.color, color: getTextColor(props.product.color), fontSize: "1em"}} onClick={() => dispatch(increment(props.productKey))}>
           {showName(props.product.name)}
           </Badge>
         <Button variant="link" onClick={() => setIsEditing(true)}>

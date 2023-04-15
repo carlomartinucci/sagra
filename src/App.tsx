@@ -160,7 +160,7 @@ function Pre({coperti, setCoperti, isAsporto, setIsAsporto, tavolo, setTavolo} :
       <Col xs={6}>
         <h2>Numero del tavolo</h2>
         <h1>{tavolo || "..."}</h1>
-        <Tastierino value={tavolo} setValue={setTavolo} />
+        <Tastierino value={tavolo} setValue={setTavolo} onClick={ () => setIsAsporto(false) } />
       </Col>
     </Row>
   </Container>
