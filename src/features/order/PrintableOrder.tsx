@@ -126,7 +126,7 @@ export function PrintableOrder({ coperti, tavolo }: { coperti: string, tavolo: s
   const isKitchenFontBig = totalKitchenLines < 12
 
   return <>
-  <Container fluid style={{ padding: "40px 40px", fontSize: isClientFontBig ? "1.3rem" : "1rem", lineHeight: isClientFontBig ? 1.7 : 1.5 }}>
+  <Container fluid style={{ fontSize: isClientFontBig ? "1.3rem" : "1rem", lineHeight: isClientFontBig ? 1.7 : 1.5 }}>
     <Image style={{width: "100%"}} src={header} alt="Festa della Divina Misericordia. Canevara (MS), domenica 16 aprile 2023" />
     <Row>
       <Col xs={6}>
@@ -166,7 +166,7 @@ export function PrintableOrder({ coperti, tavolo }: { coperti: string, tavolo: s
 
   <Break/>
 
-  <Container fluid style={{ padding: "65px 50px", fontSize: isKitchenFontBig ? "1.3rem" : "1rem" }}>
+  <Container fluid style={{ fontSize: isKitchenFontBig ? "1.3rem" : "1rem" }}>
     <Row>
       <Col>
         PER LA CUCINA
