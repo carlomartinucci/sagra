@@ -11,22 +11,3 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
-
-@media print {
-  @page {
-    margin-top: 0;
-    margin-bottom: 0;    
-  }
-
-  @page :footer {
-    display: none
-  }
-
-  @page :header {
-    display: none
-  }
-  body {
-    padding-top: 72px;
-    padding-bottom: 72px;
-  }
-}

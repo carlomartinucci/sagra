@@ -24,6 +24,7 @@ import {
 
 function App() {
   const [navigation, setNavigation] = useState("pre")
+  const [given, setGiven] = useState(0)
   const count = useAppSelector(selectCount)
   const dispatch = useAppDispatch();
   const wakeLock = useWakeLock() as any;
@@ -41,6 +42,7 @@ function App() {
     setCoperti("")
     setIsAsporto(false)
     setTavolo("")
+    setGiven(0)
     dispatch(increment())
     dispatch(reset())
     setNavigation("pre")
@@ -103,7 +105,7 @@ function App() {
           </main> :
         navigation === "pay" ?
           <main>
-            <Total onBack={() => { setNavigation("recap") }} onConfirm={() => { handlePrint(); setNavigation("done") }} />
+            <Total onBack={() => { setNavigation("recap") }} onConfirm={() => { handlePrint(); setNavigation("done") }} given={given} setGiven={setGiven}/>
           </main> :
         navigation === "done" ?
           <main>
@@ -119,7 +121,7 @@ function App() {
     </div>
 
     <div className="d-none d-print-block" ref={componentRef}>
-      <PrintableOrder tavolo={tavolo} coperti={displayCoperti(coperti, isAsporto)} />
+      <PrintableOrder tavolo={tavolo} coperti={displayCoperti(coperti, isAsporto)} given={given} />
     </div>
     </>
   );

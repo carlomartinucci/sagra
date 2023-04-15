@@ -3,4 +3,22 @@
     clear: both;
     page-break-after: always;
   }
+
+  @page {
+    margin-top: 0;
+    margin-bottom: 0;    
+  }
+
+  @page :footer {
+    display: none
+  }
+
+  @page :header {
+    display: none
+  }
+
+  body {
+    padding-top: 72px;
+    padding-bottom: 72px;
+  }
 }

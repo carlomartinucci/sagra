@@ -27,11 +27,9 @@ import eur50 from '../../images/50.jpeg'
 import eur100 from '../../images/100.jpeg'
 import header from '../../images/header.jpg'
 
-export function Total({ onBack, onConfirm }: { onBack: () => void, onConfirm: () => void }) {
+export function Total({ onBack, onConfirm, given, setGiven }: { onBack: () => void, onConfirm: () => void, given: number, setGiven: React.Dispatch<React.SetStateAction<number>> }) {
   const products = useAppSelector(selectProducts);
   const total = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
-
-  const [given, setGiven] = useState(0)
 
   const resto = given - total
 
@@ -114,11 +112,13 @@ export function RecapOrder({ coperti, tavolo }: { coperti: string, tavolo: strin
 
 }
 
-export function PrintableOrder({ coperti, tavolo }: { coperti: string, tavolo: string }) {
+export function PrintableOrder({ coperti, tavolo, given }: { coperti: string, tavolo: string, given: number }) {
   const count = useAppSelector(selectCount)
   const products = useAppSelector(selectProducts);
 
   const totalEuroCents = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
+  const resto = given - totalEuroCents
+
   const totalClientLines = Object.values(products).reduce((total, product) => total + 1, 0)
   const totalKitchenLines = Object.values(products).reduce((total, product) => total + (product.quantity > 0 ? 1 : 0) + (product.notes !== "" ? 0.5 : 0), 0)
 
@@ -161,6 +161,15 @@ export function PrintableOrder({ coperti, tavolo }: { coperti: string, tavolo: s
 
     <Row>
       <Col className="text-end">Totale: {displayEuroCents(totalEuroCents)}</Col>
+    </Row>
+    <Row>
+      <Col className="text-end">Pagato: {displayEuroCents(given)}</Col>
+    </Row>
+    <Row>
+      <Col className="text-end">Resto: {displayEuroCents(resto)}</Col>
+    </Row>
+    <Row>
+      <Col>Documento non valido ai fini fiscali</Col>
     </Row>
   </Container>
 
