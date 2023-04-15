@@ -26,7 +26,7 @@ function App() {
   const [navigation, setNavigation] = useState("pre")
   const count = useAppSelector(selectCount)
   const dispatch = useAppDispatch();
-  const wakeLock = useWakeLock();
+  const wakeLock = useWakeLock() as any;
 
   const [coperti, setCoperti] = useState("");
   const [isAsporto, setIsAsporto] = useState(false);
@@ -52,7 +52,7 @@ function App() {
       <Navbar bg="dark" variant="dark">
         <Container fluid>
           <Navbar.Brand onClick={() => setNavigation("pre")}>
-            {wakeLock ? '💡' : '📺'} Ordine #{count}
+            {wakeLock && !wakeLock.released ? '💡' : '📺'} Ordine #{count}
           </Navbar.Brand>
           <Nav className="me-auto">
             <Nav.Link active={navigation === "order"} disabled={["pre"].includes(navigation)} onClick={() => setNavigation("order")}>
