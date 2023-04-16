@@ -5,6 +5,7 @@
   }
 
   @page {
+    size: 14.8cm 21cm; /* A5 size */
     margin-top: 0;
     margin-bottom: 0;    
   }
