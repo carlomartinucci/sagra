@@ -125,7 +125,10 @@ function App({ firestore }: { firestore: any }) {
         navigation === "done" ?
           <main>
             <Container className="text-center">
-              <p style={{ marginTop: 10 }}>Ordine #{count} concluso! Se c'è stato qualche problema, torna indietro o stampa di nuovo. Altrimenti, procedi con un nuovo ordine.</p>
+            { count
+              ? <p style={{ marginTop: 10 }}>Ordine #{count} concluso! Se c'è stato qualche problema, torna indietro o stampa di nuovo. Altrimenti, procedi con un nuovo ordine.</p>
+              : <h2 style={{ marginTop: 10 }}>Ordine concluso. Non è stato possibile inserire il numero dell'ordine: ricorda di scriverlo a mano sia sul foglio del cliente sia su quello della cucina! Se c'è stato qualche problema, torna indietro o stampa di nuovo. Altrimenti, procedi con un nuovo ordine.</h2>
+            }
               <Button style={{ marginBottom: 10 }} variant="secondary" size="lg" onClick={() => { setNavigation("pay") }}>Torna indietro</Button><br/>
               <Button style={{ marginBottom: 10 }} variant="secondary" size="lg" onClick={() => { handlePrint() }}>Stampa di nuovo</Button><br/>
               <Button size="lg" onClick={handleNewOrder}>Nuovo ordine</Button>
