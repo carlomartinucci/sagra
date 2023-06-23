@@ -6,6 +6,7 @@ import {
  doc
 } from '@firebase/firestore/lite';
 
+// eslint-disable-next-line
 const incrementWithLocalStorage = async () => {
   // get the current number
   const storageValue = window.localStorage.getItem('count')
