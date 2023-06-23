@@ -53,11 +53,13 @@ function ProductRow(props: any) {
   const dispatch = useAppDispatch();
   const [isEditing, setIsEditing] = useState(false)
   const totalPriceCents = props.product.euroCents * props.product.quantity
+  const backgroundColor = props.product.color
+  const color = getTextColor(props.product.color)
   return <React.Fragment>
     <Row className={styles.orderRow}>
       {/* Nome del piatto */}
       <Col className="my-auto">
-        <Badge pill bg="" style={{backgroundColor: props.product.color, color: getTextColor(props.product.color), fontSize: "1em"}} onClick={() => dispatch(increment(props.productKey))}>
+        <Badge pill bg="" style={{backgroundColor, color, fontSize: "1em"}} onClick={() => dispatch(increment(props.productKey))}>
           {showName(props.product.name)}
           </Badge>
         <Button variant="link" onClick={() => setIsEditing(true)}>
@@ -73,11 +75,11 @@ function ProductRow(props: any) {
       {/* + Quantità - */}
       <Col xs="auto">
         <InputGroup style={{ width: 115 }}>
-          <Button variant="outline-secondary" disabled={props.product.quantity === 0} onClick={() => dispatch(decrement(props.productKey))}>
+          <Button style={{backgroundColor, color}} variant="outline-secondary" disabled={props.product.quantity === 0} onClick={() => dispatch(decrement(props.productKey))}>
             -
           </Button>
-          <Form.Control readOnly value={props.product.quantity}/>
-          <Button variant="outline-secondary" onClick={() => dispatch(increment(props.productKey))}>
+          <Form.Control readOnly value={props.product.quantity} style={{backgroundColor, color}} />
+          <Button style={{backgroundColor, color}} variant="outline-secondary" onClick={() => dispatch(increment(props.productKey))}>
             +
           </Button>
         </InputGroup>

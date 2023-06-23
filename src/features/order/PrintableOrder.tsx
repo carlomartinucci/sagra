@@ -25,7 +25,7 @@ import eur10 from '../../images/10.jpeg'
 import eur20 from '../../images/20.jpeg'
 import eur50 from '../../images/50.jpeg'
 import eur100 from '../../images/100.jpeg'
-import header from '../../images/header.jpg'
+import header from '../../images/canevara-summer-2023.png'
 
 export function Total({ onBack, onConfirm, given, setGiven }: { onBack: () => void, onConfirm: () => void, given: number, setGiven: React.Dispatch<React.SetStateAction<number>> }) {
   const products = useAppSelector(selectProducts);
@@ -127,18 +127,15 @@ export function PrintableOrder({ coperti, tavolo, given }: { coperti: string, ta
 
   return <>
   <Container fluid style={{ fontSize: "0.9rem", lineHeight: 1.5 }}>
-    <Image style={{width: "100%"}} src={header} alt="Festa della Divina Misericordia. Canevara (MS), domenica 16 aprile 2023" />
-    <Row>
-      <Col xs={6}>
-        <h1 style={{ fontSize: "6rem" }}>{count}</h1>
-      </Col>
-      <Col xs={6} className="text-end align-self-center">
-        <h2>{tavolo ? `Tavolo ${tavolo}` : ""}</h2>
-        <h2>{coperti}</h2>
-      </Col>
-    </Row>
+    <div style={{position: 'relative'}}>
+      <div style={{position: "absolute", paddingRight: 230, width: "100%", textAlign: "center", paddingTop: 30}}>
+        <h1 style={{ fontSize: 150 }}>{count}</h1>
+        <h2 style={{ paddingTop: 0, margin: 0 }}>{tavolo ? `Tavolo ${tavolo} - ` : ""}{coperti}</h2>
+      </div>
+    </div>
+    <Image style={{width: "100%"}} src={header} alt="Sagra di Canevara (MS)" />
 
-    <Table bordered size="sm">
+    <Table bordered size="sm" style={{marginTop: 10}}>
       <tbody>
         { Object.entries(products).map(([key, product]) => {
           const totalPriceCents = product.euroCents * product.quantity
@@ -183,19 +180,15 @@ export function PrintableOrder({ coperti, tavolo, given }: { coperti: string, ta
       <Col className="text-end">Totale: {displayEuroCents(totalEuroCents)}</Col>
     </Row>
 
-    <Image style={{width: "100%"}} src={header} alt="Festa della Divina Misericordia. Canevara (MS), domenica 16 aprile 2023" />
+    <div style={{position: 'relative'}}>
+      <div style={{position: "absolute", paddingRight: 230, width: "100%", textAlign: "center", paddingTop: 30}}>
+        <h1 style={{ fontSize: 150 }}>{count}</h1>
+        <h2 style={{ paddingTop: 0, margin: 0 }}>{tavolo ? `Tavolo ${tavolo} - ` : ""}{coperti}</h2>
+      </div>
+    </div>
+    <Image style={{width: "100%"}} src={header} alt="Sagra di Canevara (MS)" />
 
-    <Row>
-      <Col xs={6}>
-        <h1 style={{ fontSize: "6rem" }}>{count}</h1>
-      </Col>
-      <Col xs={6} className="text-end align-self-center">
-        <h2>{tavolo ? `Tavolo ${tavolo}` : ""}</h2>
-        <h2>{coperti}</h2>
-      </Col>
-    </Row>
-
-    <Table bordered size="sm">
+    <Table bordered size="sm" style={{marginTop: 10}}>
       <tbody>
         { Object.entries(products).filter(item => item[1].quantity > 0).map(([key, product]) => {
           return <tr key={key} className={product.quantity === 0 ? "text-muted" : ""}>
