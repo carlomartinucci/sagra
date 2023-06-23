@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import useWakeLock from './useWakeLock';
 
@@ -15,12 +15,15 @@ import { RecapOrder, PrintableOrder, Total } from './features/order/PrintableOrd
 import { useAppSelector, useAppDispatch } from './app/hooks';
 import {
   selectCount,
-  increment
+  increment,
+  reset as resetCount
 } from './features/counter/counterSlice';
 
 import {
-  reset,
+  reset as resetOrder,
+  getMenu
 } from './features/order/orderSlice';
+
 
 function App() {
   const [navigation, setNavigation] = useState("pre")
@@ -38,15 +41,27 @@ function App() {
     content: () => componentRef.current
   });
 
+  const handleConfirm = async () => {
+    if (!count) {
+      await dispatch(increment())
+    }
+    handlePrint()
+    setNavigation("done")
+  }
+
   const handleNewOrder = () => {
     setCoperti("")
     setIsAsporto(false)
     setTavolo("")
     setGiven(0)
-    dispatch(increment())
-    dispatch(reset())
+    dispatch(resetCount())
+    dispatch(resetOrder())
     setNavigation("pre")
   }
+
+  useEffect(() => {
+    dispatch(getMenu())
+  }, [dispatch])
 
   return (
     <>
@@ -54,7 +69,7 @@ function App() {
       <Navbar bg="dark" variant="dark">
         <Container fluid>
           <Navbar.Brand onClick={() => setNavigation("pre")}>
-            {wakeLock && !wakeLock.released ? '💡' : '📺'} Ordine #{count}
+            {wakeLock && !wakeLock.released ? '💡' : '📺'} { count ? `Ordine #${count}` : "Ordine ..." }
           </Navbar.Brand>
           <Nav className="me-auto">
             <Nav.Link active={navigation === "order"} disabled={["pre"].includes(navigation)} onClick={() => setNavigation("order")}>
@@ -105,7 +120,7 @@ function App() {
           </main> :
         navigation === "pay" ?
           <main>
-            <Total onBack={() => { setNavigation("recap") }} onConfirm={() => { handlePrint(); setNavigation("done") }} given={given} setGiven={setGiven}/>
+            <Total onBack={() => { setNavigation("recap") }} onConfirm={handleConfirm} given={given} setGiven={setGiven}/>
           </main> :
         navigation === "done" ?
           <main>

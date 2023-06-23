@@ -1,11 +1,8 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 
-export interface CounterState {
-  value: number;
-}
-
-const initialState: (() => CounterState) = () => {
+const incrementWithLocalStorage = async () => {
+  // get the current number
   const storageValue = window.localStorage.getItem('count')
   let value: number
   if (storageValue !== null) {
@@ -14,26 +11,46 @@ const initialState: (() => CounterState) = () => {
     value = Math.floor(Math.random() * 10000)
     window.localStorage.setItem('count', `${value}`)
   }
-  return { value }
-};
+
+  // increment it
+  window.localStorage.setItem('count', `${value + 1}`)
+
+  // return the original, non incremented number
+  return value
+}
+
+export interface CounterState {
+  value?: number;
+}
+
+export const increment = createAsyncThunk(
+  'counter/increment',
+  async () => {
+    return await incrementWithLocalStorage()
+  }
+)
+
+const initialState: CounterState = {
+  value: undefined
+}
 
 export const counterSlice = createSlice({
   name: 'counter',
   initialState,
   reducers: {
-    increment: (state) => {
-      state.value += 1;
-      window.localStorage.setItem('count', `${state.value}`)
-    },
-    set: (state, action: PayloadAction<number>) => {
-      state.value = action.payload;
-      window.localStorage.setItem('count', `${state.value}`)
+    reset: (state) => {
+      state.value = undefined;
     },
   },
+  extraReducers: (builder) => {
+    builder.addCase(increment.fulfilled, (state, action) => {
+      state.value = action.payload
+    })
+  }
 });
 
-export const { increment, set } = counterSlice.actions;
+export const { reset } = counterSlice.actions;
 
-export const selectCount = (state: RootState) => String(state.counter.value % 10000).padStart(4, '0');
+export const selectCount = (state: RootState) => state.counter.value ? String(state.counter.value % 10000).padStart(4, '0') : "";
 
 export default counterSlice.reducer;

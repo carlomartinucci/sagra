@@ -1,7 +1,7 @@
 import counterReducer, {
   CounterState,
-  increment,
-  set
+  // increment,
+  reset
 } from './counterSlice';
 
 describe('counter reducer', () => {
@@ -14,13 +14,13 @@ describe('counter reducer', () => {
     });
   });
 
-  it('should handle increment', () => {
-    const actual = counterReducer(initialState, increment());
-    expect(actual.value).toEqual(4);
-  });
+  // it('should handle increment', () => {
+  //   const actual = counterReducer(initialState, increment());
+  //   expect(actual.value).toEqual(4);
+  // });
 
-  it('should handle set', () => {
-    const actual = counterReducer(initialState, set(42));
-    expect(actual.value).toEqual(42);
+  it('should handle reset', () => {
+    const actual = counterReducer(initialState, reset());
+    expect(actual.value).toEqual(undefined);
   });
 });

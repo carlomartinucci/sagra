@@ -1,8 +1,10 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
+import { fetchGoogleSheetsData } from '../../googleSheetsMapper';
 
 export interface OrderState {
-  products: { [key: string]: Product };
+  products: { [key: string]: Product },
+  menu: any
 }
 
 export interface Product {
@@ -17,84 +19,32 @@ export function displayEuroCents(euroCents: number){
   return '\u20AC' + (euroCents / 100).toLocaleString('it-IT', { minimumFractionDigits: 2 });;
 };
 
-const initialState: OrderState = {
-  products: {
-    tordelli: {
-      name: "Tordelli al ragù",
-      color: "#e52421",
-      quantity: 0,
-      euroCents: 700,
-      notes: ""
-    },
-    pastaripiena: {
-      name: "Pasta ripiena al forno",
-      color: "#ffcc00",
-      quantity: 0,
-      euroCents: 700,
-      notes: ""
-    },
-    lasagne: {
-      name: "Lasagne di mare al forno",
-      color: "#2a4b9b",
-      quantity: 0,
-      euroCents: 700,
-      notes: ""
-    },
-    girelline: {
-      name: "Girelline ricotta e spinaci",
-      color: "#339933",
-      quantity: 0,
-      euroCents: 700,
-      notes: ""
-    },
-    stinco: {
-      name: "Stinco con patate",
-      color: "#7d4e24",
-      quantity: 0,
-      euroCents: 1200,
-      notes: ""
-    },
-    mezzostinco: {
-      name: "Mezzo stinco con patate",
-      color: "#fdeb19",
-      quantity: 0,
-      euroCents: 700,
-      notes: ""
-    },
-    cozze: {
-      name: "Cozze ripiene",
-      color: "#00005a",
-      quantity: 0,
-      euroCents: 700,
-      notes: ""
-    },
-    freddo: {
-      name: ["Piatto freddo: bresaola, rucola, ", "scaglie di parmigiano, aceto balsamico"],
-      color: "#880000",
-      quantity: 0,
-      euroCents: 700,
-      notes: ""
-    },
-    riso: {
-      name: "Torta di riso",
-      color: "#ea5b0c",
-      quantity: 0,
-      euroCents: 400,
-      notes: ""
-    },
-    cioccolato: {
-      name: "Torta al cioccolato",
-      color: "#432918",
-      quantity: 0,
-      euroCents: 400,
-      notes: ""
-    },
-  },
-};
+export const getMenu = createAsyncThunk(
+  'order/getMenu',
+  async () => {
+    // TODO: use local storage to add support for offline once you download it once
+    try {
+      const menuData = await fetchGoogleSheetsData({
+        apiKey: "AIzaSyDViExKryqfG6-PUs7Cm-cU2fmrrjTHwic",
+        sheetId: "1xYntTjaN14GkKqO-3pWchvFewD6l45kQfR9kru2zlGs",
+        sheetsOptions: [{ id: 'menu' }],
+      });
+      console.log("menuData", menuData[0].data)
+      return menuData[0].data
+    } catch (error) {
+      console.error(error);
+    }
+  }
+)
+
+const emptyInitialState: OrderState = {
+  products: {},
+  menu: []
+}
 
 export const orderSlice = createSlice({
   name: 'order',
-  initialState,
+  initialState: emptyInitialState,
   reducers: {
     increment: (state, action: PayloadAction<string>) => {
       if (state.products[action.payload] !== null) {
@@ -112,8 +62,20 @@ export const orderSlice = createSlice({
       }
     },
     reset: (state) => {
-      state.products = initialState.products
+      state.products = {}
+      for (const item of state.menu) {
+        state.products[item.name] = { ...item, quantity: 0, notes: ""}
+      }
     }
+  },
+  extraReducers: (builder) => {
+    builder.addCase(getMenu.fulfilled, (state, action) => {
+      if (!action.payload) return
+
+      for (const item of action.payload) {
+        state.products[item.name] = { ...item, quantity: 0, notes: ""}
+      }
+    })
   },
 });
 
