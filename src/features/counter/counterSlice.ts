@@ -1,5 +1,10 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
+import {
+ getDoc,
+ updateDoc,
+ doc
+} from '@firebase/firestore/lite';
 
 const incrementWithLocalStorage = async () => {
   // get the current number
@@ -19,14 +24,28 @@ const incrementWithLocalStorage = async () => {
   return value
 }
 
+const incrementWithFirestore = async (firestore: any) => {
+  // TODO: try to use firestore not lite to do it atomically and protect from race conditions
+  // TODO: degrade gracefully in case of network error
+  const docRef = doc(firestore, 'sagre/canevara');
+  const count = (await getDoc(docRef)).data()?.count;
+  if (count) {
+    console.log(count)
+    await updateDoc(docRef, "count", count + 1);
+    return count
+  } else {
+    return undefined
+  }
+}
+
 export interface CounterState {
   value?: number;
 }
 
 export const increment = createAsyncThunk(
   'counter/increment',
-  async () => {
-    return await incrementWithLocalStorage()
+  async (firestore: any) => {
+    return await incrementWithFirestore(firestore)
   }
 )
 

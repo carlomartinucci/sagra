@@ -25,7 +25,7 @@ import {
 } from './features/order/orderSlice';
 
 
-function App() {
+function App({ firestore }: { firestore: any }) {
   const [navigation, setNavigation] = useState("pre")
   const [given, setGiven] = useState(0)
   const count = useAppSelector(selectCount)
@@ -43,7 +43,7 @@ function App() {
 
   const handleConfirm = async () => {
     if (!count) {
-      await dispatch(increment())
+      await dispatch(increment(firestore))
     }
     handlePrint()
     setNavigation("done")
