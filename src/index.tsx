@@ -9,7 +9,7 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore/lite";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDsKV1vZo1nxPPlGQOUPmK5FzJRddwLZhE",
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: "sagra-360015.firebaseapp.com",
   projectId: "sagra-360015",
   storageBucket: "sagra-360015.appspot.com",

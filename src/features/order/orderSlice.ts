@@ -8,11 +8,13 @@ export interface OrderState {
 }
 
 export interface Product {
-  name: string | string[],
+  name: string,
   color: string,
   quantity: number,
   euroCents: number,
-  notes: string
+  notes: string,
+  order: number,
+  description: string
 }
 
 export function displayEuroCents(euroCents: number){
@@ -24,8 +26,6 @@ export const getMenu = createAsyncThunk(
   async () => {
     try {
       const menuData = await fetchGoogleSheetsData({
-        apiKey: "AIzaSyDViExKryqfG6-PUs7Cm-cU2fmrrjTHwic",
-        sheetId: "1xYntTjaN14GkKqO-3pWchvFewD6l45kQfR9kru2zlGs",
         sheetsOptions: [{ id: 'menu' }],
       });
       console.log("menuData", menuData[0].data)
@@ -71,7 +71,7 @@ export const orderSlice = createSlice({
     reset: (state) => {
       state.products = {}
       for (const item of state.menu) {
-        state.products[item.name] = { ...item, quantity: 0, notes: ""}
+        state.products[item.name] = { ...item, quantity: 0, notes: "", order: parseInt(item.order) }
       }
     }
   },
@@ -81,7 +81,7 @@ export const orderSlice = createSlice({
 
       state.menu = action.payload
       for (const item of action.payload) {
-        state.products[item.name] = { ...item, quantity: 0, notes: ""}
+        state.products[item.name] = { ...item, quantity: 0, notes: "", order: parseInt(item.order) }
       }
     })
   },

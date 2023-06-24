@@ -1,11 +1,13 @@
 const GoogleSheetsMapper = {
   async fetchGoogleSheetsData({
-    apiKey,
-    sheetId,
     sheetsOptions = [],
   }) {
     try {
-      const response = await fetchBatchData({ apiKey, sheetId, sheetsOptions });
+      const response = await fetchBatchData({
+        apiKey: process.env.REACT_APP_SHEETS_API_KEY,
+        sheetId: process.env.REACT_APP_SHEET_ID,
+        sheetsOptions
+      });
 
       console.log(response)
       return mapData({ sheets: response.valueRanges, sheetsOptions });

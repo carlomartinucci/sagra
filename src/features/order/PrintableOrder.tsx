@@ -112,14 +112,11 @@ export function RecapOrder({ coperti, tavolo }: { coperti: string, tavolo: strin
 
 export function PrintableOrder({ count, coperti, tavolo, given }: { count: string, coperti: string, tavolo: string, given: number }) {
   const products = useAppSelector(selectProducts);
-
+  const orderedProducts = Object.values(products).sort((p1, p2) => p1.order - p2.order)
   const totalEuroCents = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
-  const resto = given - totalEuroCents
 
-  const totalClientLines = Object.values(products).reduce((total, product) => total + 1, 0)
   const totalKitchenLines = Object.values(products).reduce((total, product) => total + (product.quantity > 0 ? 1 : 0) + (product.notes !== "" ? 0.5 : 0), 0)
 
-  const isClientFontBig = totalClientLines < 15
   const isKitchenFontBig = totalKitchenLines < 12
 
   return <>
@@ -132,38 +129,14 @@ export function PrintableOrder({ count, coperti, tavolo, given }: { count: strin
     </div>
     <Image style={{width: "100%"}} src={headerCliente} alt="Sagra di Canevara (MS)" />
 
-    <Table bordered size="sm" style={{marginTop: 10}}>
-      <tbody>
-        { Object.entries(products).map(([key, product]) => {
-          const totalPriceCents = product.euroCents * product.quantity
-          
-          return <tr key={key}>
-            <td className="text-center" style={{verticalAlign: "middle", fontWeight: product.quantity > 0 ? "bold" : ""}}>
-              &nbsp;
-              {product.quantity}
-              &nbsp;
-            </td>
-            <td style={{verticalAlign: "middle"}}>
-              {product.name} ({displayEuroCents(product.euroCents)})
-              {product.notes && product.quantity > 0 && <span> (Note: {product.notes})</span>}
-            </td>
-            <td className="text-end" style={{verticalAlign: "middle"}}><span style={{ fontSize: isClientFontBig ? "1rem" : "0.8rem" }}>{totalPriceCents > 0 ? displayEuroCents(totalPriceCents) : ""}</span></td>
-          </tr>
-        })}
-      </tbody>
-    </Table>
+    { orderedProducts.map((product) => {
+      return <Row key={product.name} style={{textAlign: "center"}}>
+        <Col style={{fontSize: "1.3em"}}><b>{product.name}</b>{product.description ? ` (${product.description})` : ""}</Col>
+      </Row>
+    })}
 
     <Row>
-      <Col className="text-end">Totale: {displayEuroCents(totalEuroCents)}</Col>
-    </Row>
-    <Row>
-      <Col className="text-end">Pagato: {displayEuroCents(given)}</Col>
-    </Row>
-    <Row>
-      <Col className="text-end">Resto: {displayEuroCents(resto)}</Col>
-    </Row>
-    <Row>
-      <Col>Documento non valido ai fini fiscali</Col>
+      <Col>* preparato da noi e congelato prima della cottura</Col>
     </Row>
   </Container>
 
@@ -189,11 +162,11 @@ export function PrintableOrder({ count, coperti, tavolo, given }: { count: strin
       <tbody>
         { Object.entries(products).filter(item => item[1].quantity > 0).map(([key, product]) => {
           return <tr key={key} className={product.quantity === 0 ? "text-muted" : ""}>
-            <td className="text-center" style={{verticalAlign: "middle"}}>
-              <span style={{ fontSize: isKitchenFontBig ? "1.5rem" : "1.3rem", fontWeight: "bold" }}>{product.quantity}</span>
+            <td className="text-center" style={{verticalAlign: "middle", paddingTop: 0, paddingBottom: 0}}>
+              <span style={{ fontSize: "2rem", fontWeight: "bold" }}>{product.quantity}</span>
             </td>
-            <td style={{verticalAlign: "middle"}}>
-              {product.name}
+            <td style={{verticalAlign: "middle", paddingTop: 0, paddingBottom: 0}}>
+              <span style={{ fontSize: "1.5rem"}}>{product.name}</span>
               {product.notes && <span> (Note: <span style={{ fontWeight: "bold" }}>{product.notes}</span>)</span>}
             </td>
           </tr>
