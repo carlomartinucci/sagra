@@ -115,10 +115,6 @@ export function PrintableOrder({ count, coperti, tavolo, given }: { count: strin
   const orderedProducts = Object.values(products).sort((p1, p2) => p1.order - p2.order)
   const totalEuroCents = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
 
-  const totalKitchenLines = Object.values(products).reduce((total, product) => total + (product.quantity > 0 ? 1 : 0) + (product.notes !== "" ? 0.5 : 0), 0)
-
-  const isKitchenFontBig = totalKitchenLines < 12
-
   return <>
   <Container fluid style={{ fontSize: "0.9rem", lineHeight: 1.5 }}>
     <div style={{position: 'relative'}}>
