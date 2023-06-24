@@ -22,7 +22,6 @@ export function displayEuroCents(euroCents: number){
 export const getMenu = createAsyncThunk(
   'order/getMenu',
   async () => {
-    // TODO: use local storage to add support for offline once you download it once
     try {
       const menuData = await fetchGoogleSheetsData({
         apiKey: "AIzaSyDViExKryqfG6-PUs7Cm-cU2fmrrjTHwic",
@@ -30,9 +29,17 @@ export const getMenu = createAsyncThunk(
         sheetsOptions: [{ id: 'menu' }],
       });
       console.log("menuData", menuData[0].data)
+      window.localStorage.setItem("menu", JSON.stringify(menuData[0].data))
       return menuData[0].data
     } catch (error) {
       console.error(error);
+    }
+
+    try {
+      const rawMenu = window.localStorage.getItem("menu")
+      return JSON.parse(rawMenu ?? "{}")
+    } catch (error) {
+      console.error(error)
     }
   }
 )
@@ -72,6 +79,7 @@ export const orderSlice = createSlice({
     builder.addCase(getMenu.fulfilled, (state, action) => {
       if (!action.payload) return
 
+      state.menu = action.payload
       for (const item of action.payload) {
         state.products[item.name] = { ...item, quantity: 0, notes: ""}
       }

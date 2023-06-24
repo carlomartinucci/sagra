@@ -5,9 +5,6 @@ import {
   selectProducts,
   displayEuroCents,
 } from './orderSlice';
-import {
-  selectCount,
-} from '../counter/counterSlice';
 
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
@@ -25,7 +22,8 @@ import eur10 from '../../images/10.jpeg'
 import eur20 from '../../images/20.jpeg'
 import eur50 from '../../images/50.jpeg'
 import eur100 from '../../images/100.jpeg'
-import header from '../../images/canevara-summer-2023.png'
+import headerCucina from '../../images/canevara-summer-2023.png'
+import headerCliente from '../../images/intestazione-per-clienti-2023.png'
 
 export function Total({ onBack, onConfirm, given, setGiven }: { onBack: () => void, onConfirm: () => void, given: number, setGiven: React.Dispatch<React.SetStateAction<number>> }) {
   const products = useAppSelector(selectProducts);
@@ -112,8 +110,7 @@ export function RecapOrder({ coperti, tavolo }: { coperti: string, tavolo: strin
 
 }
 
-export function PrintableOrder({ coperti, tavolo, given }: { coperti: string, tavolo: string, given: number }) {
-  const count = useAppSelector(selectCount)
+export function PrintableOrder({ count, coperti, tavolo, given }: { count: string, coperti: string, tavolo: string, given: number }) {
   const products = useAppSelector(selectProducts);
 
   const totalEuroCents = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
@@ -128,12 +125,12 @@ export function PrintableOrder({ coperti, tavolo, given }: { coperti: string, ta
   return <>
   <Container fluid style={{ fontSize: "0.9rem", lineHeight: 1.5 }}>
     <div style={{position: 'relative'}}>
-      <div style={{position: "absolute", paddingRight: 230, width: "100%", textAlign: "center", paddingTop: 30}}>
-        <h1 style={{ fontSize: 150 }}>{count}</h1>
+      <div style={{position: "absolute", width: "100%", textAlign: "center", paddingTop: 30}}>
+        <h1 style={{ fontSize: 230 }}>{count}</h1>
         <h2 style={{ paddingTop: 0, margin: 0 }}>{tavolo ? `Tavolo ${tavolo} - ` : ""}{coperti}</h2>
       </div>
     </div>
-    <Image style={{width: "100%"}} src={header} alt="Sagra di Canevara (MS)" />
+    <Image style={{width: "100%"}} src={headerCliente} alt="Sagra di Canevara (MS)" />
 
     <Table bordered size="sm" style={{marginTop: 10}}>
       <tbody>
@@ -186,7 +183,7 @@ export function PrintableOrder({ coperti, tavolo, given }: { coperti: string, ta
         <h2 style={{ paddingTop: 0, margin: 0 }}>{tavolo ? `Tavolo ${tavolo} - ` : ""}{coperti}</h2>
       </div>
     </div>
-    <Image style={{width: "100%"}} src={header} alt="Sagra di Canevara (MS)" />
+    <Image style={{width: "100%"}} src={headerCucina} alt="Sagra di Canevara (MS)" />
 
     <Table bordered size="sm" style={{marginTop: 10}}>
       <tbody>

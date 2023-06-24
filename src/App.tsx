@@ -1,6 +1,7 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import useWakeLock from './useWakeLock';
+import useDetectKeypress from './useDetectKeypress';
 
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
@@ -15,7 +16,9 @@ import { RecapOrder, PrintableOrder, Total } from './features/order/PrintableOrd
 import { useAppSelector, useAppDispatch } from './app/hooks';
 import {
   selectCount,
+  getCount,
   increment,
+  useCountPrefix,
   reset as resetCount
 } from './features/counter/counterSlice';
 
@@ -27,11 +30,13 @@ import {
 
 function App({ firestore }: { firestore: any }) {
   const [navigation, setNavigation] = useState("pre")
+  const [altCountPrefix, setAltCountPrefix] = useCountPrefix()
+  useDetectKeypress("alpaca", useCallback(() => { setAltCountPrefix("") }, [setAltCountPrefix]))
+
   const [given, setGiven] = useState(0)
-  const count = useAppSelector(selectCount)
+  const count = getCount(useAppSelector(selectCount), altCountPrefix)
   const dispatch = useAppDispatch();
   const wakeLock = useWakeLock() as any;
-
   const [coperti, setCoperti] = useState("");
   const [isAsporto, setIsAsporto] = useState(false);
   const [tavolo, setTavolo] = useState("");
@@ -89,14 +94,27 @@ function App({ firestore }: { firestore: any }) {
       </Navbar>
 
       {
+        !altCountPrefix ?
+          <main>
+            <Container className="text-center">
+              <p>Scegli il prefisso per i numeri di ordine nel caso in cui venga meno la connessione internet</p>
+              <Button
+                style={{ marginBottom: 10 }}
+                variant="secondary"
+                size="lg"
+                onClick={() => { setAltCountPrefix("A") }}
+              >A</Button><br/>
+              <Button style={{ marginBottom: 10 }} variant="secondary" size="lg" onClick={() => { setAltCountPrefix("B") }}>B</Button><br/>
+            </Container>
+          </main> :
         navigation === "pre" ?
           <main>
             <Pre coperti={coperti} setCoperti={setCoperti} isAsporto={isAsporto} setIsAsporto={setIsAsporto} tavolo={tavolo} setTavolo={setTavolo} />
 
             <Container className="text-center">
-              <Button size="lg" disabled={!isAsporto && (coperti==="" || tavolo==="")} onClick={() => { setNavigation("order") }}>Procedi al menù</Button>
-              { (!isAsporto && (coperti==="" || tavolo==="")) && <p className="text-danger">
-                Inserisci {(!isAsporto && coperti==="") && "il numero di coperti"}{!isAsporto && coperti==="" && tavolo==="" && " e "}{tavolo==="" && "il numero del tavolo"} per continuare
+              <Button size="lg" disabled={!isAsporto && coperti===""} onClick={() => { setNavigation("order") }}>Procedi al menù</Button>
+              { !isAsporto && coperti==="" && <p className="text-danger">
+                Inserisci il numero di coperti per continuare
               </p> }
             </Container>
           </main> :
@@ -139,7 +157,7 @@ function App({ firestore }: { firestore: any }) {
     </div>
 
     <div className="d-none d-print-block" ref={componentRef}>
-      <PrintableOrder tavolo={tavolo} coperti={displayCoperti(coperti, isAsporto)} given={given} />
+      <PrintableOrder count={count} tavolo={tavolo} coperti={displayCoperti(coperti, isAsporto)} given={given} />
     </div>
     </>
   );
