@@ -7,6 +7,7 @@ const useDetectKeypress = (string: string, callback: () => void) => {
     setSomething("")
   }
   const onKeyDown = useCallback((event: any) => {
+    if (!event.key) return
     if (event.altKey) return
     if (event.ctrlKey) return
     if (event.metaKey) return

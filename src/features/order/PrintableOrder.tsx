@@ -114,6 +114,10 @@ export function PrintableOrder({ count, coperti, tavolo, given }: { count: strin
   const products = useAppSelector(selectProducts);
   const orderedProducts = Object.values(products).sort((p1, p2) => p1.order - p2.order)
   const totalEuroCents = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
+  const cucinaProducts = Object.values(products).filter(product => product.quantity > 0)
+  const cucinaNotesCount = Object.values(products).filter(product => product.notes).length
+  const isCucinaFontBig = cucinaProducts.length + cucinaNotesCount / 3 <= 9
+  const isCucinaFontSmall = cucinaProducts.length >= 13
 
   return <>
   <Container fluid style={{ fontSize: "0.9rem", lineHeight: 1.5 }}>
@@ -156,14 +160,15 @@ export function PrintableOrder({ count, coperti, tavolo, given }: { count: strin
 
     <Table bordered size="sm" style={{marginTop: 10}}>
       <tbody>
-        { Object.entries(products).filter(item => item[1].quantity > 0).map(([key, product]) => {
-          return <tr key={key} className={product.quantity === 0 ? "text-muted" : ""}>
+        { cucinaProducts.map((product) => {
+          return <tr key={product.name}>
             <td className="text-center" style={{verticalAlign: "middle", paddingTop: 0, paddingBottom: 0}}>
-              <span style={{ fontSize: "2rem", fontWeight: "bold" }}>{product.quantity}</span>
+              <span style={{ fontSize: isCucinaFontBig ? "3rem" : isCucinaFontSmall ? "2rem" : "2.5rem", fontWeight: "bold" }}>{product.quantity}</span>
             </td>
             <td style={{verticalAlign: "middle", paddingTop: 0, paddingBottom: 0}}>
-              <span style={{ fontSize: "1.5rem"}}>{product.name}</span>
-              {product.notes && <span> (Note: <span style={{ fontWeight: "bold" }}>{product.notes}</span>)</span>}
+              <span style={{ fontSize: isCucinaFontBig ? "2.2rem" : isCucinaFontSmall ? "1.5rem" : "1.8rem"}}>{product.name}</span>
+              {product.notes ? (isCucinaFontBig ? <br/> : " ") : ""}
+              {product.notes ? <span style={{ fontSize: isCucinaFontBig ? "1.8rem" : isCucinaFontSmall ? "1rem" : "1.3rem"}}>(Note: <span style={{ fontWeight: "bold" }}>{product.notes}</span>)</span> : ""}
             </td>
           </tr>
         })}
