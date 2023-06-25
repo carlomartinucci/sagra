@@ -23,7 +23,7 @@ const logOrder = async (firestore, order) => {
   }
 
   if (order.id) {
-    const updatedDoc = await updateDoc(doc(firestore, `sagre/${process.env.REACT_APP_SAGRA_ID}/orderHistory`, order.id), data)
+    await updateDoc(doc(firestore, `sagre/${process.env.REACT_APP_SAGRA_ID}/orderHistory`, order.id), data)
 
     return order.id
   } else {

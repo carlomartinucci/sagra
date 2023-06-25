@@ -113,7 +113,6 @@ export function RecapOrder({ coperti, tavolo }: { coperti: string, tavolo: strin
 export function PrintableOrder({ count, coperti, tavolo, given }: { count: string, coperti: string, tavolo: string, given: number }) {
   const products = useAppSelector(selectProducts);
   const orderedProducts = Object.values(products).sort((p1, p2) => p1.order - p2.order)
-  const totalEuroCents = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
   const cucinaProducts = Object.values(products).filter(product => product.quantity > 0)
   const cucinaNotesCount = Object.values(products).filter(product => product.notes).length
   const isCucinaFontBig = cucinaProducts.length + cucinaNotesCount / 3 <= 9
