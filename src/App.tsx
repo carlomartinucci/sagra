@@ -15,6 +15,7 @@ import Col from 'react-bootstrap/Col';
 import { Order } from './features/order/Order';
 import { RecapOrder, PrintableOrder, Total } from './features/order/PrintableOrder';
 import { useAppSelector, useAppDispatch } from './app/hooks';
+import { store } from './app/store';
 import {
   selectCount,
   getCount,
@@ -31,6 +32,7 @@ import {
 
 function App({ firestore }: { firestore: any }) {
   const [navigation, setNavigation] = useState("pre")
+  const [orderId, setOrderId] = useState(null)
   const [altCountPrefix, setAltCountPrefix] = useCountPrefix()
   useDetectKeypress("alpaca", useCallback(() => { setAltCountPrefix("") }, [setAltCountPrefix]))
 
@@ -53,9 +55,13 @@ function App({ firestore }: { firestore: any }) {
       await dispatch(increment(firestore))
     }
     handlePrint()
-    // TODO: count here will always be nil.
-    // TODO: if we logged it already, update the same one instead of adding another
-    logOrder(firestore, count, Object.values(products).filter(product => product.quantity > 0))
+
+    const newOrderId = await logOrder(firestore, {
+      id: orderId,
+      count: store.getState().counter.value,
+      products: Object.values(products).filter(product => product.quantity > 0)
+    })
+    setOrderId(newOrderId)
     setNavigation("done")
   }
 
@@ -64,6 +70,7 @@ function App({ firestore }: { firestore: any }) {
     setIsAsporto(false)
     setTavolo("")
     setGiven(0)
+    setOrderId(null)
     dispatch(resetCount())
     dispatch(resetOrder())
     setNavigation("pre")

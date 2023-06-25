@@ -27,7 +27,7 @@ const incrementWithLocalStorage = async () => {
 
 const incrementWithFirestore = async (firestore: any) => {
   // TODO: try to use firestore not lite to do it atomically and protect from race conditions
-  const docRef = doc(firestore, 'sagre/canevara');
+  const docRef = doc(firestore, `sagre/${process.env.REACT_APP_SAGRA_ID}`);
   const count = (await getDoc(docRef)).get("count");
   if (count) {
     console.log(count)

@@ -1,27 +1,36 @@
 import {
   addDoc,
+  updateDoc,
   collection,
+  doc,
   serverTimestamp
 } from '@firebase/firestore/lite';
 
-const logOrder = async (firestore, count, products) => {
-  const cachedQuantity = products.reduce((total, product) => total + product.quantity, 0)
-  const cachedEuroCents = products.reduce((total, product) => total + product.euroCents * product.quantity, 0)
+const logOrder = async (firestore, order) => {
+  const cachedQuantity = order.products.reduce((total, product) => total + product.quantity, 0)
+  const cachedEuroCents = order.products.reduce((total, product) => total + product.euroCents * product.quantity, 0)
 
-  console.log(products)
-  await addDoc(collection(firestore, 'sagre/canevara/orderHistory'), {
-    count,
+  const data = {
+    count: order.count,
     cachedQuantity,
     cachedEuroCents,
     created: serverTimestamp(),
-    products: products.map(product => ({
+    products: order.products.map(product => ({
       euroCents: product.euroCents,
       name: product.name,
       quantity: product.quantity
     }))
-  })
+  }
 
-  return
+  if (order.id) {
+    const updatedDoc = await updateDoc(doc(firestore, `sagre/${process.env.REACT_APP_SAGRA_ID}/orderHistory`, order.id), data)
+
+    return order.id
+  } else {
+    const createdDoc = await addDoc(collection(firestore, `sagre/${process.env.REACT_APP_SAGRA_ID}/orderHistory`), data)
+
+    return createdDoc.id
+  }
 }
 
 export default logOrder
