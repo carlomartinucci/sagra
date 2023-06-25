@@ -120,55 +120,48 @@ export function PrintableOrder({ count, coperti, tavolo, given }: { count: strin
   const isCucinaFontSmall = cucinaProducts.length >= 13
 
   return <>
-  <Container fluid style={{ fontSize: "0.9rem", lineHeight: 1.5 }}>
+  <Container fluid style={{ lineHeight: 1.5, padding: 0, margin: 0 }}>
     <div style={{position: 'relative'}}>
-      <div style={{position: "absolute", width: "100%", textAlign: "center", paddingTop: 30}}>
-        <h1 style={{ fontSize: 230 }}>{count}</h1>
-        <h2 style={{ paddingTop: 0, margin: 0 }}>{tavolo ? `Tavolo ${tavolo} - ` : ""}{coperti}</h2>
+      <div style={{position: "absolute", width: "100%", textAlign: "center", padding: "3vh"}}>
+        <h1 style={{ fontSize: "30vw", margin: 0, padding: 0 }}>{count}</h1>
+        <h2 style={{ padding: 0, margin: 0, fontSize: "5vw" }}>{tavolo ? `Tavolo ${tavolo} - ` : ""}{coperti}</h2>
       </div>
     </div>
-    <Image style={{width: "100%"}} src={headerCliente} alt="Sagra di Canevara (MS)" />
+    <Image style={{ width: "100%", padding: 0, margin: 0 }} src={headerCliente} alt="Sagra di Canevara (MS)" />
 
     { orderedProducts.map((product) => {
       return <Row key={product.name} style={{textAlign: "center"}}>
-        <Col style={{fontSize: "1.3em"}}><b>{product.name}</b>{product.description ? ` (${product.description})` : ""}</Col>
+        <Col style={{ padding: 0, margin: "0 3vw", fontSize: "2.5vw" }}><b>{product.name}</b>{product.description ? ` (${product.description})` : ""}</Col>
       </Row>
     })}
 
     <Row>
-      <Col>* preparato da noi e congelato prima della cottura</Col>
+      <Col style={{ padding: 0, margin: "5vw", fontSize: "2.5vw" }}>* preparato da noi e congelato prima della cottura</Col>
     </Row>
   </Container>
 
   <Break/>
 
-  <Container fluid style={{ fontSize: "1rem", lineHeight: 1.5 }}>
-    <Row>
-      <Col>
-        PER LA CUCINA
-      </Col>
-      <Col className="text-end">Totale: {displayEuroCents(totalEuroCents)}</Col>
-    </Row>
-
+  <Container fluid style={{ lineHeight: 1.5 }}>
     <div style={{position: 'relative'}}>
-      <div style={{position: "absolute", paddingRight: 230, width: "100%", textAlign: "center", paddingTop: 30}}>
-        <h1 style={{ fontSize: 150 }}>{count}</h1>
-        <h2 style={{ paddingTop: 0, margin: 0 }}>{tavolo ? `Tavolo ${tavolo} - ` : ""}{coperti}</h2>
+      <div style={{position: "absolute", padding: "3.2vh 25vw 0 0", margin: 0, width: "100%", textAlign: "center"}}>
+        <h1 style={{ fontSize: "20vw", margin: 0, padding: 0 }}>{count}</h1>
+        <h2 style={{ padding: 0, margin: 0, fontSize: "3vw" }}>{tavolo ? `Tavolo ${tavolo} - ` : ""}{coperti}</h2>
       </div>
     </div>
     <Image style={{width: "100%"}} src={headerCucina} alt="Sagra di Canevara (MS)" />
 
-    <Table bordered size="sm" style={{marginTop: 10}}>
+    <Table bordered size="sm" style={{ margin: 0, padding: 0 }}>
       <tbody>
         { cucinaProducts.map((product) => {
-          return <tr key={product.name}>
-            <td className="text-center" style={{verticalAlign: "middle", paddingTop: 0, paddingBottom: 0}}>
-              <span style={{ fontSize: isCucinaFontBig ? "3rem" : isCucinaFontSmall ? "2rem" : "2.5rem", fontWeight: "bold" }}>{product.quantity}</span>
+          return <tr key={product.name} style={{ margin: 0 }}>
+            <td className="text-center" style={{ verticalAlign: "middle", padding: "0 1vh" }}>
+              <span style={{ fontSize: isCucinaFontBig ? "6vw" : isCucinaFontSmall ? "2vw" : "4.5vw", fontWeight: "bold" }}>{product.quantity}</span>
             </td>
-            <td style={{verticalAlign: "middle", paddingTop: 0, paddingBottom: 0}}>
-              <span style={{ fontSize: isCucinaFontBig ? "2.2rem" : isCucinaFontSmall ? "1.5rem" : "1.8rem"}}>{product.name}</span>
+            <td style={{ verticalAlign: "middle", padding: "0 1vh" }}>
+              <span style={{ fontSize: isCucinaFontBig ? "4.4vw" : isCucinaFontSmall ? "1.5vw" : "3.2vw"}}>{product.name}</span>
               {product.notes ? (isCucinaFontBig ? <br/> : " ") : ""}
-              {product.notes ? <span style={{ fontSize: isCucinaFontBig ? "1.8rem" : isCucinaFontSmall ? "1rem" : "1.3rem"}}>(Note: <span style={{ fontWeight: "bold" }}>{product.notes}</span>)</span> : ""}
+              {product.notes ? <span style={{ fontSize: isCucinaFontBig ? "3.6vw" : isCucinaFontSmall ? "1vw" : "2.3vw"}}>(Note: <span style={{ fontWeight: "bold" }}>{product.notes}</span>)</span> : ""}
             </td>
           </tr>
         })}
