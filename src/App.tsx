@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import useWakeLock from './useWakeLock';
 import useDetectKeypress from './useDetectKeypress';
+import logOrder from './logOrder';
 
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
@@ -23,10 +24,10 @@ import {
 } from './features/counter/counterSlice';
 
 import {
+  selectProducts,
   reset as resetOrder,
   getMenu
 } from './features/order/orderSlice';
-
 
 function App({ firestore }: { firestore: any }) {
   const [navigation, setNavigation] = useState("pre")
@@ -35,6 +36,7 @@ function App({ firestore }: { firestore: any }) {
 
   const [given, setGiven] = useState(0)
   const count = getCount(useAppSelector(selectCount), altCountPrefix)
+  const products = useAppSelector(selectProducts)
   const dispatch = useAppDispatch();
   const wakeLock = useWakeLock() as any;
   const [coperti, setCoperti] = useState("");
@@ -51,6 +53,9 @@ function App({ firestore }: { firestore: any }) {
       await dispatch(increment(firestore))
     }
     handlePrint()
+    // TODO: count here will always be nil.
+    // TODO: if we logged it already, update the same one instead of adding another
+    logOrder(firestore, count, Object.values(products).filter(product => product.quantity > 0))
     setNavigation("done")
   }
 

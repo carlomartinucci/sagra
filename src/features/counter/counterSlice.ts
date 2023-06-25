@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 import {
- getDoc,
- updateDoc,
- doc
+  getDoc,
+  updateDoc,
+  doc
 } from '@firebase/firestore/lite';
 
 const incrementWithLocalStorage = async () => {
@@ -28,7 +28,7 @@ const incrementWithLocalStorage = async () => {
 const incrementWithFirestore = async (firestore: any) => {
   // TODO: try to use firestore not lite to do it atomically and protect from race conditions
   const docRef = doc(firestore, 'sagre/canevara');
-  const count = (await getDoc(docRef)).data()?.count;
+  const count = (await getDoc(docRef)).get("count");
   if (count) {
     console.log(count)
     await updateDoc(docRef, "count", count + 1);
