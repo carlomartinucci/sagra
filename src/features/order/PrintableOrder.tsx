@@ -115,6 +115,8 @@ export function PrintableOrder({ count, coperti, tavolo, given }: { count: strin
   const orderedProducts = Object.values(products).sort((p1, p2) => p1.order - p2.order)
   const cucinaProducts = Object.values(products).filter(product => product.quantity > 0)
   const cucinaNotesCount = Object.values(products).filter(product => product.notes).length
+  const totalEuroCents = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
+
   const isCucinaFontBig = cucinaProducts.length + cucinaNotesCount / 3 <= 9
   const isCucinaFontSmall = cucinaProducts.length >= 13
 
@@ -145,7 +147,11 @@ export function PrintableOrder({ count, coperti, tavolo, given }: { count: strin
     <div style={{position: 'relative'}}>
       <div style={{position: "absolute", padding: "3.2vh 25vw 0 0", margin: 0, width: "100%", textAlign: "center"}}>
         <h1 style={{ fontSize: "20vw", margin: 0, padding: 0 }}>{count}</h1>
-        <h2 style={{ padding: 0, margin: 0, fontSize: "3vw" }}>{tavolo ? `Tavolo ${tavolo} - ` : ""}{coperti}</h2>
+        <h2 style={{ padding: 0, margin: 0, fontSize: "3vw" }}>
+          {tavolo ? `Tavolo ${tavolo} - ` : ""}
+          {coperti} {"- "}
+          {displayEuroCents(totalEuroCents)}
+        </h2>
       </div>
     </div>
     <Image style={{width: "100%"}} src={headerCucina} alt="Sagra di Canevara (MS)" />
@@ -155,12 +161,12 @@ export function PrintableOrder({ count, coperti, tavolo, given }: { count: strin
         { cucinaProducts.map((product) => {
           return <tr key={product.name} style={{ margin: 0 }}>
             <td className="text-center" style={{ verticalAlign: "middle", padding: "0 1vh" }}>
-              <span style={{ fontSize: isCucinaFontBig ? "6vw" : isCucinaFontSmall ? "2vw" : "4.5vw", fontWeight: "bold" }}>{product.quantity}</span>
+              <span style={{ fontSize: isCucinaFontBig ? "6vw" : isCucinaFontSmall ? "3.5vw" : "4.5vw", fontWeight: "bold" }}>{product.quantity}</span>
             </td>
             <td style={{ verticalAlign: "middle", padding: "0 1vh" }}>
-              <span style={{ fontSize: isCucinaFontBig ? "4.4vw" : isCucinaFontSmall ? "1.5vw" : "3.2vw"}}>{product.name}</span>
+              <span style={{ fontSize: isCucinaFontBig ? "4.4vw" : isCucinaFontSmall ? "2.8vw" : "3.2vw"}}>{product.name}</span>
               {product.notes ? (isCucinaFontBig ? <br/> : " ") : ""}
-              {product.notes ? <span style={{ fontSize: isCucinaFontBig ? "3.6vw" : isCucinaFontSmall ? "1vw" : "2.3vw"}}>(Note: <span style={{ fontWeight: "bold" }}>{product.notes}</span>)</span> : ""}
+              {product.notes ? <span style={{ fontSize: isCucinaFontBig ? "3.6vw" : isCucinaFontSmall ? "1.8vw" : "2.3vw"}}>(Note: <span style={{ fontWeight: "bold" }}>{product.notes}</span>)</span> : ""}
             </td>
           </tr>
         })}
