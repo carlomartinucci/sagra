@@ -135,7 +135,7 @@ function App({ firestore }: { firestore: any }) {
 
             <Container className="text-center">
               <Button style={{ marginBottom: 10 }}variant="secondary" size="lg" onClick={() => { setNavigation("pre") }}>Torna indietro</Button><br/>
-              <Button size="lg" onClick={() => { setNavigation("recap") }}>Procedi al riepilogo</Button>
+              <Button size="lg" disabled={Object.values(products).every(product => product.quantity === 0)} onClick={() => { setNavigation("recap") }}>Procedi al riepilogo</Button>
             </Container>
           </main> :
         navigation === "recap" ?

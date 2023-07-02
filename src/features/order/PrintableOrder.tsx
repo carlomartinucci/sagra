@@ -39,18 +39,17 @@ export function Total({ onBack, onConfirm, given, setGiven }: { onBack: () => vo
       <h3 style={{paddingTop: 30}}>Totale pagato:</h3>
       <h2>{displayEuroCents(given)}</h2>
 
-      <Row style={{paddingTop: 30}}>
-        <Button variant="outline-primary" onClick={() => { setGiven(0) }}>Cancella</Button>
-      </Row>
+      <Button variant="outline-primary" className="mt-3" size="lg" onClick={() => { setGiven(0) }}>Cancella</Button>
 
       <Row style={{paddingTop: 10}}>
-        <Col xs={4} className="d-flex justify-content-center align-items-center">
+        <Col xs={3} />
+        <Col xs={2} className="d-flex justify-content-center align-items-center">
           <Image style={{margin: "auto"}} roundedCircle thumbnail src={cent50} alt={displayEuroCents(50)} onClick={() => { setGiven((given) => given + 50) }} />
         </Col>
-        <Col xs={4} className="d-flex justify-content-center align-items-center">
+        <Col xs={2} className="d-flex justify-content-center align-items-center">
           <Image style={{margin: "auto"}} roundedCircle thumbnail src={eur1} alt={displayEuroCents(100)} onClick={() => { setGiven((given) => given + 100) }} />
         </Col>
-        <Col xs={4} className="d-flex justify-content-center align-items-center">
+        <Col xs={2} className="d-flex justify-content-center align-items-center">
           <Image style={{margin: "auto"}} roundedCircle thumbnail src={eur2} alt={displayEuroCents(200)} onClick={() => { setGiven((given) => given + 200) }} />
         </Col>
       </Row>
@@ -81,7 +80,7 @@ export function Total({ onBack, onConfirm, given, setGiven }: { onBack: () => vo
     </Container>
 
     <Container style={{paddingTop: 30}} className="text-center">
-      <Button style={{ marginBottom: 10 }} variant="secondary" size="lg" onClick={onBack}>Torna indietro</Button><br/>
+      <Button style={{ marginRight: 20 }} variant="secondary" size="lg" onClick={onBack}>Torna indietro</Button>
       <Button size="lg" onClick={onConfirm} disabled={resto < 0}>Conferma e stampa</Button>
       { resto < 0 && <p className="text-danger">mancano {displayEuroCents(-resto)}, indica il pagamento del cliente per continuare</p> }
     </Container>
