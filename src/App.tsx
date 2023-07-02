@@ -35,6 +35,7 @@ function App({ firestore }: { firestore: any }) {
   const [orderId, setOrderId] = useState(null)
   const [altCountPrefix, setAltCountPrefix] = useCountPrefix()
   useDetectKeypress("alpaca", useCallback(() => { setAltCountPrefix("") }, [setAltCountPrefix]))
+  // useDetectKeypress("down", useCallback(() => { download(firestore) }, [firestore]))
 
   const [given, setGiven] = useState(0)
   const count = getCount(useAppSelector(selectCount), altCountPrefix)
@@ -42,7 +43,6 @@ function App({ firestore }: { firestore: any }) {
   const dispatch = useAppDispatch();
   const wakeLock = useWakeLock() as any;
   const [coperti, setCoperti] = useState("");
-  const [isAsporto, setIsAsporto] = useState(false);
   const [tavolo, setTavolo] = useState("");
 
   const componentRef = useRef(null);
@@ -67,7 +67,6 @@ function App({ firestore }: { firestore: any }) {
 
   const handleNewOrder = () => {
     setCoperti("")
-    setIsAsporto(false)
     setTavolo("")
     setGiven(0)
     setOrderId(null)
@@ -121,18 +120,18 @@ function App({ firestore }: { firestore: any }) {
           </main> :
         navigation === "pre" ?
           <main>
-            <Pre coperti={coperti} setCoperti={setCoperti} isAsporto={isAsporto} setIsAsporto={setIsAsporto} tavolo={tavolo} setTavolo={setTavolo} />
+            <Pre coperti={coperti} setCoperti={setCoperti} tavolo={tavolo} setTavolo={setTavolo} />
 
             <Container className="text-center">
-              <Button size="lg" disabled={!isAsporto && coperti===""} onClick={() => { setNavigation("order") }}>Procedi al menù</Button>
-              { !isAsporto && coperti==="" && <p className="text-danger">
+              <Button size="lg" disabled={coperti===""} onClick={() => { setNavigation("order") }}>Procedi al menù</Button>
+              { coperti==="" && <p className="text-danger">
                 Inserisci il numero di coperti per continuare
               </p> }
             </Container>
           </main> :
         navigation === "order" ?
           <main>
-            <Order tavolo={tavolo} coperti={displayCoperti(coperti, isAsporto)} />
+            <Order tavolo={tavolo} coperti={displayCoperti(coperti)} />
 
             <Container className="text-center">
               <Button style={{ marginBottom: 10 }}variant="secondary" size="lg" onClick={() => { setNavigation("pre") }}>Torna indietro</Button><br/>
@@ -141,7 +140,7 @@ function App({ firestore }: { firestore: any }) {
           </main> :
         navigation === "recap" ?
           <main>
-            <RecapOrder tavolo={tavolo} coperti={displayCoperti(coperti, isAsporto)} />
+            <RecapOrder tavolo={tavolo} coperti={displayCoperti(coperti)} />
 
             <Container className="text-center">
               <Button style={{ marginBottom: 10 }}variant="secondary" size="lg" onClick={() => { setNavigation("order") }}>Torna indietro</Button><br/>
@@ -169,7 +168,7 @@ function App({ firestore }: { firestore: any }) {
     </div>
 
     <div className="d-none d-print-block" ref={componentRef}>
-      <PrintableOrder count={count} tavolo={tavolo} coperti={displayCoperti(coperti, isAsporto)} given={given} />
+      <PrintableOrder count={count} tavolo={tavolo} coperti={displayCoperti(coperti)} given={given} />
     </div>
     </>
   );
@@ -178,39 +177,42 @@ function App({ firestore }: { firestore: any }) {
 interface PreProps {
   coperti: string,
   setCoperti: React.Dispatch<React.SetStateAction<string>>,
-  isAsporto: boolean,
-  setIsAsporto: React.Dispatch<React.SetStateAction<boolean>>,
   tavolo: string,
   setTavolo: React.Dispatch<React.SetStateAction<string>>
 }
 
-const displayCoperti = (coperti: string, isAsporto: boolean): string => {
-  if (isAsporto) return "Da asporto"
+const displayCoperti = (coperti: string): string => {
   if (coperti === "") return "..."
-  return `${coperti} coperti`
+  if (/^\d+$/.test(coperti)) return `${coperti} coperti`
+  return coperti
 }
 
-function Pre({coperti, setCoperti, isAsporto, setIsAsporto, tavolo, setTavolo} : PreProps) {  
+function Pre({coperti, setCoperti, tavolo, setTavolo} : PreProps) {
   const handleTapAsporto = () => {
-    setCoperti("")
-    setIsAsporto(true)
+    setCoperti("Da asporto")
     setTavolo("")
+  }
+  const handleTapAggiunta = () => { setCoperti("Aggiunta") }
+  const handleTastierinoClick = () => {
+    if (coperti === "Aggiunta") return
+    setCoperti(coperti => coperti.replace(/\D/g,''))
   }
 
   return <Container className="my-5 text-center">
     <Row>
       <Col xs={6}>
         <h2>Quanti coperti?</h2>
-        <h1>{displayCoperti(coperti, isAsporto)}</h1>
-        <Tastierino value={coperti} setValue={setCoperti} onClick={ () => setIsAsporto(false) } />
+        <h1>{displayCoperti(coperti)}</h1>
+        <Tastierino value={coperti} setValue={setCoperti} onClick={() => setCoperti(coperti => coperti.replace(/\D/g,''))} />
         <br/>
         <Button size="lg" className="mt-3" onClick={handleTapAsporto}>Da asporto</Button>
+        <Button size="lg" className="mt-3 mx-3" onClick={handleTapAggiunta}>Aggiunta</Button>
       </Col>
 
       <Col xs={6}>
         <h2>Numero del tavolo</h2>
         <h1>{tavolo || "..."}</h1>
-        <Tastierino value={tavolo} setValue={setTavolo} onClick={ () => setIsAsporto(false) } />
+        <Tastierino value={tavolo} setValue={setTavolo} onClick={handleTastierinoClick} />
       </Col>
     </Row>
   </Container>
