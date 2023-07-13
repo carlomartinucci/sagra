@@ -3,6 +3,7 @@ import { useReactToPrint } from 'react-to-print';
 import useWakeLock from './useWakeLock';
 import useDetectKeypress from './useDetectKeypress';
 import logOrder from './logOrder';
+// import logOrder, { download } from './logOrder';
 
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
@@ -38,6 +39,7 @@ function App({ firestore }: { firestore: any }) {
   // useDetectKeypress("down", useCallback(() => { download(firestore) }, [firestore]))
 
   const [given, setGiven] = useState(0)
+  const [mode, setMode] = useState("cash")
   const count = getCount(useAppSelector(selectCount), altCountPrefix)
   const products = useAppSelector(selectProducts)
   const dispatch = useAppDispatch();
@@ -59,7 +61,8 @@ function App({ firestore }: { firestore: any }) {
     const newOrderId = await logOrder(firestore, {
       id: orderId,
       count: store.getState().counter.value,
-      products: Object.values(products).filter(product => product.quantity > 0)
+      products: Object.values(products).filter(product => product.quantity > 0),
+      mode: mode
     })
     setOrderId(newOrderId)
     setNavigation("done")
@@ -69,6 +72,7 @@ function App({ firestore }: { firestore: any }) {
     setCoperti("")
     setTavolo("")
     setGiven(0)
+    setMode("cash")
     setOrderId(null)
     dispatch(resetCount())
     dispatch(resetOrder())
@@ -123,7 +127,7 @@ function App({ firestore }: { firestore: any }) {
             <Pre coperti={coperti} setCoperti={setCoperti} tavolo={tavolo} setTavolo={setTavolo} />
 
             <Container className="text-center">
-              <Button size="lg" disabled={coperti===""} onClick={() => { setNavigation("order") }}>Procedi al menù</Button>
+              <Button size="lg" autoFocus disabled={coperti===""} onClick={() => { setNavigation("order") }}>Procedi al menù</Button>
               { coperti==="" && <p className="text-danger">
                 Inserisci il numero di coperti per continuare
               </p> }
@@ -134,8 +138,8 @@ function App({ firestore }: { firestore: any }) {
             <Order tavolo={tavolo} coperti={displayCoperti(coperti)} />
 
             <Container className="text-center">
-              <Button style={{ marginBottom: 10 }}variant="secondary" size="lg" onClick={() => { setNavigation("pre") }}>Torna indietro</Button><br/>
-              <Button size="lg" disabled={Object.values(products).every(product => product.quantity === 0)} onClick={() => { setNavigation("recap") }}>Procedi al riepilogo</Button>
+              <Button style={{ marginBottom: 10 }} variant="link" size="sm" onClick={() => { setNavigation("pre") }}>Torna indietro</Button><br/>
+              <Button size="lg" autoFocus disabled={Object.values(products).every(product => product.quantity === 0)} onClick={() => { setNavigation("recap") }}>Procedi al riepilogo</Button>
             </Container>
           </main> :
         navigation === "recap" ?
@@ -143,13 +147,13 @@ function App({ firestore }: { firestore: any }) {
             <RecapOrder tavolo={tavolo} coperti={displayCoperti(coperti)} />
 
             <Container className="text-center">
-              <Button style={{ marginBottom: 10 }}variant="secondary" size="lg" onClick={() => { setNavigation("order") }}>Torna indietro</Button><br/>
-              <Button size="lg" onClick={() => { setNavigation("pay") }}>Procedi al pagamento</Button>
+              <Button style={{ marginBottom: 10 }} variant="link" size="sm" onClick={() => { setNavigation("order") }}>Torna indietro</Button><br/>
+              <Button size="lg" autoFocus onClick={() => { setNavigation("pay") }}>Procedi al pagamento</Button>
             </Container>
           </main> :
         navigation === "pay" ?
           <main>
-            <Total onBack={() => { setNavigation("recap") }} onConfirm={handleConfirm} given={given} setGiven={setGiven}/>
+            <Total onBack={() => { setNavigation("recap") }} onConfirm={handleConfirm} given={given} setGiven={setGiven} mode={mode} setMode={setMode} />
           </main> :
         navigation === "done" ?
           <main>
@@ -158,9 +162,9 @@ function App({ firestore }: { firestore: any }) {
               ? <p style={{ marginTop: 10 }}>Ordine #{count} concluso! Se c'è stato qualche problema, torna indietro o stampa di nuovo. Altrimenti, procedi con un nuovo ordine.</p>
               : <h2 style={{ marginTop: 10 }}>Ordine concluso. Non è stato possibile inserire il numero dell'ordine: ricorda di scriverlo a mano sia sul foglio del cliente sia su quello della cucina! Se c'è stato qualche problema, torna indietro o stampa di nuovo. Altrimenti, procedi con un nuovo ordine.</h2>
             }
-              <Button style={{ marginBottom: 10 }} variant="secondary" size="lg" onClick={() => { setNavigation("pay") }}>Torna indietro</Button><br/>
-              <Button style={{ marginBottom: 10 }} variant="secondary" size="lg" onClick={() => { handlePrint() }}>Stampa di nuovo</Button><br/>
-              <Button size="lg" onClick={handleNewOrder}>Nuovo ordine</Button>
+              <Button autoFocus style={{ marginBottom: 20 }} size="lg" onClick={handleNewOrder}>Nuovo ordine</Button><br/>
+              <Button variant="link" size="sm" onClick={() => { setNavigation("pay") }}>Torna indietro</Button>
+              <Button variant="secondary" size="sm" onClick={() => { handlePrint() }}>Stampa di nuovo</Button>
             </Container>
           </main> :
           <div>Questo non dovrebbe mai succedere. Se vedi questa schermata, ricordati la parola "{navigation}" e aggiorna la pagina. Grazie.</div>
@@ -168,7 +172,7 @@ function App({ firestore }: { firestore: any }) {
     </div>
 
     <div className="d-none d-print-block" ref={componentRef}>
-      <PrintableOrder count={count} tavolo={tavolo} coperti={displayCoperti(coperti)} given={given} />
+      <PrintableOrder count={count} tavolo={tavolo} coperti={displayCoperti(coperti)} given={given} mode={mode} />
     </div>
     </>
   );
@@ -183,6 +187,7 @@ interface PreProps {
 
 const displayCoperti = (coperti: string): string => {
   if (coperti === "") return "..."
+  if (coperti === "1") return "1 coperto"
   if (/^\d+$/.test(coperti)) return `${coperti} coperti`
   return coperti
 }

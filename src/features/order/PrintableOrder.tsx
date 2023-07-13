@@ -7,6 +7,8 @@ import {
 } from './orderSlice';
 
 import Button from 'react-bootstrap/Button';
+import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import ToggleButton from 'react-bootstrap/ToggleButton';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -22,14 +24,14 @@ import eur10 from '../../images/10.jpeg'
 import eur20 from '../../images/20.jpeg'
 import eur50 from '../../images/50.jpeg'
 import eur100 from '../../images/100.jpeg'
-import headerCucina from '../../images/canevara-summer-2023.png'
-import headerCliente from '../../images/intestazione-per-clienti-2023.png'
+import headerCucina from '../../images/cassa-forno-2023.png'
+// import headerCliente from '../../images/cassa-forno-2023.png'
 
-export function Total({ onBack, onConfirm, given, setGiven }: { onBack: () => void, onConfirm: () => void, given: number, setGiven: React.Dispatch<React.SetStateAction<number>> }) {
+export function Total({ onBack, onConfirm, given, setGiven, mode, setMode }: { onBack: () => void, onConfirm: () => void, given: number, setGiven: React.Dispatch<React.SetStateAction<number>>, mode: string, setMode: React.Dispatch<React.SetStateAction<string>> }) {
   const products = useAppSelector(selectProducts);
   const total = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
 
-  const resto = given - total
+  const resto = mode === "cash" ? given - total : 0
 
   return <>
     <Container fluid style={{paddingTop: 30, textAlign: "center"}} >
@@ -37,9 +39,14 @@ export function Total({ onBack, onConfirm, given, setGiven }: { onBack: () => vo
       <h2>{displayEuroCents(total)}</h2>
 
       <h3 style={{paddingTop: 30}}>Totale pagato:</h3>
-      <h2>{displayEuroCents(given)}</h2>
+      <h2>{mode === "cash" ? displayEuroCents(given) : mode === "POS" ? displayEuroCents(total) : "-"}</h2>
 
-      <Button variant="outline-primary" className="mt-3" size="lg" onClick={() => { setGiven(0) }}>Cancella</Button>
+      <Button variant="outline-secondary" className="mt-3" onClick={() => { setGiven(0) }}>Cancella</Button>
+      <ButtonGroup className="mt-3 mx-3" >
+        <ToggleButton id="mode-cash" value="cash" type="radio" variant={mode === "cash" ? "primary" : "outline-primary"} size="lg" checked={mode === "cash"} onChange={(e) => setMode(e.target.value)}>Contanti</ToggleButton>
+        <ToggleButton id="mode-POS" value="POS" type="radio" variant={mode === "POS" ? "primary" : "outline-primary"} size="lg" checked={mode === "POS"} onChange={(e) => setMode(e.target.value)}>POS</ToggleButton>
+        <ToggleButton id="mode-servizio" value="servizio" type="radio" variant={mode === "servizio" ? "primary" : "outline-primary"} size="lg" checked={mode === "servizio"} onChange={(e) => setMode(e.target.value)}>Servizio</ToggleButton>
+      </ButtonGroup>
 
       <Row style={{paddingTop: 10}}>
         <Col xs={3} />
@@ -80,7 +87,7 @@ export function Total({ onBack, onConfirm, given, setGiven }: { onBack: () => vo
     </Container>
 
     <Container style={{paddingTop: 30}} className="text-center">
-      <Button style={{ marginRight: 20 }} variant="secondary" size="lg" onClick={onBack}>Torna indietro</Button>
+      <Button style={{ marginRight: 20 }} variant="link" size="sm" onClick={onBack}>Torna indietro</Button>
       <Button size="lg" onClick={onConfirm} disabled={resto < 0}>Conferma e stampa</Button>
       { resto < 0 && <p className="text-danger">mancano {displayEuroCents(-resto)}, indica il pagamento del cliente per continuare</p> }
     </Container>
@@ -109,9 +116,19 @@ export function RecapOrder({ coperti, tavolo }: { coperti: string, tavolo: strin
 
 }
 
-export function PrintableOrder({ count, coperti, tavolo, given }: { count: string, coperti: string, tavolo: string, given: number }) {
+export function PrintableOrder({ count, coperti, tavolo, given, mode }: { count: string, coperti: string, tavolo: string, given: number, mode: string }) {
+  return <>
+    <CucinaOrder count={count} coperti={coperti} tavolo={tavolo} given={given} mode={mode} />
+
+    <Break/>
+
+    <CucinaOrder count={count} coperti={coperti} tavolo={tavolo} given={given} mode={mode} />
+  </>
+}
+
+export function CucinaOrder({ count, coperti, tavolo, given, mode }: { count: string, coperti: string, tavolo: string, given: number, mode: string }) {
   const products = useAppSelector(selectProducts);
-  const orderedProducts = Object.values(products).sort((p1, p2) => p1.order - p2.order)
+  // const orderedProducts = Object.values(products).sort((p1, p2) => p1.order - p2.order)
   const cucinaProducts = Object.values(products).filter(product => product.quantity > 0)
   const cucinaNotesCount = Object.values(products).filter(product => product.notes).length
   const totalEuroCents = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
@@ -119,37 +136,16 @@ export function PrintableOrder({ count, coperti, tavolo, given }: { count: strin
   const isCucinaFontBig = cucinaProducts.length + cucinaNotesCount / 3 <= 9
   const isCucinaFontSmall = cucinaProducts.length >= 13
 
-  return <>
-  <Container fluid style={{ lineHeight: 1.5, padding: 0, margin: 0 }}>
+  return <Container fluid style={{ lineHeight: 1.5 }}>
     <div style={{position: 'relative'}}>
-      <div style={{position: "absolute", width: "100%", textAlign: "center", padding: "3vh"}}>
-        <h1 style={{ fontSize: "30vw", margin: 0, padding: 0 }}>{count}</h1>
-        <h2 style={{ padding: 0, margin: 0, fontSize: "5vw" }}>{tavolo ? `Tavolo ${tavolo} - ` : ""}{coperti}</h2>
-      </div>
-    </div>
-    <Image style={{ width: "100%", padding: 0, margin: 0 }} src={headerCliente} alt="Sagra di Canevara (MS)" />
-
-    { orderedProducts.map((product) => {
-      return <Row key={product.name} style={{textAlign: "center"}}>
-        <Col style={{ padding: 0, margin: "0 3vw", fontSize: "2.5vw" }}><b>{product.name}</b>{product.description ? ` (${product.description})` : ""}</Col>
-      </Row>
-    })}
-
-    <Row>
-      <Col style={{ padding: 0, margin: "5vw", fontSize: "2.5vw" }}>* preparato da noi e congelato prima della cottura</Col>
-    </Row>
-  </Container>
-
-  <Break/>
-
-  <Container fluid style={{ lineHeight: 1.5 }}>
-    <div style={{position: 'relative'}}>
-      <div style={{position: "absolute", padding: "3.2vh 25vw 0 0", margin: 0, width: "100%", textAlign: "center"}}>
+      <div style={{position: "absolute", padding: "3.2vh 30vw 0 0", margin: 0, width: "100%", textAlign: "center"}}>
         <h1 style={{ fontSize: "20vw", margin: 0, padding: 0 }}>{count}</h1>
-        <h2 style={{ padding: 0, margin: 0, fontSize: "3vw" }}>
+        <h2 style={{ padding: 0, margin: 0, fontSize: "2.5vw" }}>
+          {(new Date()).toLocaleTimeString()} {"- "}
           {tavolo ? `Tavolo ${tavolo} - ` : ""}
           {coperti} {"- "}
           {displayEuroCents(totalEuroCents)}
+          {mode === "POS" ? ` (POS)` : ""}
         </h2>
       </div>
     </div>
@@ -171,8 +167,11 @@ export function PrintableOrder({ count, coperti, tavolo, given }: { count: strin
         })}
       </tbody>
     </Table>
+
+    <Row>
+      <Col style={{ padding: 0, margin: "1vh 2vh", fontSize: "2.5vw" }}>* preparato da noi e congelato prima della cottura</Col>
+    </Row>
   </Container>
-  </>
 }
 
 
