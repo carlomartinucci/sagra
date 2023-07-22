@@ -138,12 +138,18 @@ export function CucinaOrder({ count, coperti, tavolo, given, mode }: { count: st
 
   return <Container fluid style={{ lineHeight: 1.5 }}>
     <div style={{position: 'relative'}}>
-      <div style={{position: "absolute", padding: "3.2vh 30vw 0 0", margin: 0, width: "100%", textAlign: "center"}}>
+      <div style={{position: "absolute", padding: "4.2vh 30vw 0 0", margin: 0, width: "100%", textAlign: "center"}}>
+        <h2 style={{ padding: 0, margin: 0, fontSize: "5vw" }}>
+          {coperti}
+        </h2>
+      </div>
+      <div style={{position: "absolute", padding: "5vh 30vw 0 0", margin: 0, width: "100%", textAlign: "center"}}>
         <h1 style={{ fontSize: "20vw", margin: 0, padding: 0 }}>{count}</h1>
+      </div>
+      <div style={{position: "absolute", padding: "20.5vh 30vw 0 0", margin: 0, width: "100%", textAlign: "center"}}>
         <h2 style={{ padding: 0, margin: 0, fontSize: "2.5vw" }}>
           {(new Date()).toLocaleTimeString()} {"- "}
           {tavolo ? `Tavolo ${tavolo} - ` : ""}
-          {coperti} {"- "}
           {displayEuroCents(totalEuroCents)}
           {mode === "POS" ? ` (POS)` : ""}
         </h2>
