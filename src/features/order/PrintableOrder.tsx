@@ -24,8 +24,7 @@ import eur10 from '../../images/10.jpeg'
 import eur20 from '../../images/20.jpeg'
 import eur50 from '../../images/50.jpeg'
 import eur100 from '../../images/100.jpeg'
-import headerCucina from '../../images/cassa-forno-2023.png'
-// import headerCliente from '../../images/cassa-forno-2023.png'
+import headerCucina from '../../images/canevara-summer-2024.jpeg'
 
 export function Total({ onBack, onConfirm, given, setGiven, mode, setMode }: { onBack: () => void, onConfirm: () => void, given: number, setGiven: React.Dispatch<React.SetStateAction<number>>, mode: string, setMode: React.Dispatch<React.SetStateAction<string>> }) {
   const products = useAppSelector(selectProducts);
