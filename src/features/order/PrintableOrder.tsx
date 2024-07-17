@@ -24,7 +24,7 @@ import eur10 from '../../images/10.jpeg'
 import eur20 from '../../images/20.jpeg'
 import eur50 from '../../images/50.jpeg'
 import eur100 from '../../images/100.jpeg'
-import headerCucina from '../../images/canevara-summer-2024.jpeg'
+import headerCucina from '../../images/forno-2024.jpeg'
 
 export function Total({ onBack, onConfirm, given, setGiven, mode, setMode }: { onBack: () => void, onConfirm: () => void, given: number, setGiven: React.Dispatch<React.SetStateAction<number>>, mode: string, setMode: React.Dispatch<React.SetStateAction<string>> }) {
   const products = useAppSelector(selectProducts);
@@ -154,7 +154,7 @@ export function CucinaOrder({ count, coperti, tavolo, given, mode }: { count: st
         </h2>
       </div>
     </div>
-    <Image style={{width: "100%"}} src={headerCucina} alt="Sagra di Canevara (MS)" />
+    <Image style={{width: "100%"}} src={headerCucina} alt="Header della Sagra" />
 
     <Table bordered size="sm" style={{ margin: 0, padding: 0 }}>
       <tbody>
