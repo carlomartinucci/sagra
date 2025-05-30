@@ -12,6 +12,7 @@ import Navbar from 'react-bootstrap/Navbar';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Modal from 'react-bootstrap/Modal';
 
 import { Order } from './features/order/Order';
 import { RecapOrder, PrintableOrder, Total } from './features/order/PrintableOrder';
@@ -27,25 +28,39 @@ import {
 
 import {
   selectProducts,
+  selectDailyPortions,
   reset as resetOrder,
-  getMenu
+  getMenu,
+  getDailyPortions,
+  decrementPortion,
+  decrementPortionLocal,
+  forceReloadDailyPortions,
+  updatePortionManually,
+  resetSinglePortion
 } from './features/order/orderSlice';
 
 function App({ firestore }: { firestore: any }) {
   const [navigation, setNavigation] = useState("pre")
   const [orderId, setOrderId] = useState(null)
   const [altCountPrefix, setAltCountPrefix] = useCountPrefix()
-  useDetectKeypress("alpaca", useCallback(() => { setAltCountPrefix("") }, [setAltCountPrefix]))
-  // useDetectKeypress("down", useCallback(() => { download(firestore) }, [firestore]))
-
+  const [showAdminModal, setShowAdminModal] = useState(false)
+  
   const [given, setGiven] = useState(0)
   const [mode, setMode] = useState("cash")
   const count = getCount(useAppSelector(selectCount), altCountPrefix)
   const products = useAppSelector(selectProducts)
+  const dailyPortions = useAppSelector(selectDailyPortions)
   const dispatch = useAppDispatch();
   const wakeLock = useWakeLock() as any;
   const [coperti, setCoperti] = useState("");
   const [tavolo, setTavolo] = useState("");
+
+  useDetectKeypress("alpaca", useCallback(() => { setAltCountPrefix("") }, [setAltCountPrefix]))
+  useDetectKeypress("pizza", useCallback(() => { 
+    console.log("🍕 Pizza shortcut triggered - opening admin panel...");
+    setShowAdminModal(true);
+  }, []))
+  // useDetectKeypress("down", useCallback(() => { download(firestore) }, [firestore]))
 
   const componentRef = useRef(null);
   const handlePrint = useReactToPrint({
@@ -58,10 +73,20 @@ function App({ firestore }: { firestore: any }) {
     }
     handlePrint()
 
+    // Decrement daily portions for ordered products
+    const orderedProducts = Object.values(products).filter(product => product.quantity > 0);
+    for (const product of orderedProducts) {
+      // Optimistically update local state
+      dispatch(decrementPortionLocal({ productName: product.name, quantity: product.quantity }));
+      
+      // Attempt to update Firebase (will queue for offline sync if needed)
+      dispatch(decrementPortion({ firestore, productName: product.name, quantity: product.quantity }));
+    }
+
     const newOrderId = await logOrder(firestore, {
       id: orderId,
       count: store.getState().counter.value,
-      products: Object.values(products).filter(product => product.quantity > 0),
+      products: orderedProducts,
       mode: mode
     })
     setOrderId(newOrderId)
@@ -77,11 +102,45 @@ function App({ firestore }: { firestore: any }) {
     dispatch(resetCount())
     dispatch(resetOrder())
     setNavigation("pre")
+    
+    // Reload daily portions to check for updates/new day
+    dispatch(getDailyPortions(firestore))
   }
 
   useEffect(() => {
     dispatch(getMenu())
   }, [dispatch])
+
+  useEffect(() => {
+    // Load daily portions after menu is loaded
+    dispatch(getDailyPortions(firestore))
+  }, [dispatch, firestore])
+
+  const handleForceReload = async () => {
+    console.log("🔄 Force reloading all portions from Google Sheets...");
+    await dispatch(forceReloadDailyPortions(firestore));
+    setShowAdminModal(false);
+  }
+
+  const handleResetSinglePortion = async (productName: string) => {
+    console.log(`🔄 Resetting ${productName} to Google Sheets values...`);
+    await dispatch(resetSinglePortion({ firestore, productName }));
+  }
+
+  const handleUpdatePortion = (productName: string, change: number) => {
+    const currentPortion = dailyPortions[productName];
+    if (currentPortion) {
+      const newQuantity = currentPortion.remaining + change;
+      dispatch(updatePortionManually({ productName, newQuantity }));
+      
+      // Also update Firebase
+      dispatch(decrementPortion({ 
+        firestore, 
+        productName, 
+        quantity: -change // negative to increase
+      }));
+    }
+  }
 
   return (
     <>
@@ -120,6 +179,7 @@ function App({ firestore }: { firestore: any }) {
                 onClick={() => { setAltCountPrefix("A") }}
               >A</Button><br/>
               <Button style={{ marginBottom: 10 }} variant="secondary" size="lg" onClick={() => { setAltCountPrefix("B") }}>B</Button><br/>
+              <Button style={{ marginBottom: 10 }} variant="secondary" size="lg" onClick={() => { setAltCountPrefix("C") }}>C</Button><br/>
             </Container>
           </main> :
         navigation === "pre" ?
@@ -174,6 +234,16 @@ function App({ firestore }: { firestore: any }) {
     <div className="d-none d-print-block" ref={componentRef}>
       <PrintableOrder count={count} tavolo={tavolo} coperti={displayCoperti(coperti)} given={given} mode={mode} />
     </div>
+
+    {/* Admin Modal */}
+    <AdminModal 
+      show={showAdminModal}
+      onHide={() => setShowAdminModal(false)}
+      dailyPortions={dailyPortions}
+      onUpdatePortion={handleUpdatePortion}
+      onResetSingle={handleResetSinglePortion}
+      onForceReload={handleForceReload}
+    />
     </>
   );
 }
@@ -259,6 +329,171 @@ function Tastierino({ value, setValue, onClick }: { value: string, setValue: Rea
       <Button onClick={ handleDel }variant="outline-primary">⌫</Button>
     </ButtonGroup>
   </ButtonGroup>
+}
+
+// AdminModal component
+function AdminModal({ show, onHide, dailyPortions, onUpdatePortion, onResetSingle, onForceReload }: {
+  show: boolean,
+  onHide: () => void,
+  dailyPortions: any,
+  onUpdatePortion: (productName: string, change: number) => void,
+  onResetSingle: (productName: string) => void,
+  onForceReload: () => void
+}) {
+  const products = useAppSelector(selectProducts);
+
+  // Show ALL products, no filtering
+  const allPortionItems = Object.entries(products);
+
+  console.log('🍕 Admin Modal Debug:');
+  console.log('Total products:', Object.keys(products).length);
+  console.log('Showing all products:', allPortionItems.length);
+  console.log('All products:', Object.keys(products));
+
+  const getStatusIcon = (remaining: number, threshold: number) => {
+    if (remaining === 0) return "❌";
+    if (remaining <= 5) return "🔴";
+    if (remaining <= threshold) return "⚠️";
+    return "✅";
+  };
+
+  const getCurrentRemaining = (productName: string) => {
+    return dailyPortions[productName]?.remaining ?? 0;
+  };
+
+  const getCriticalThreshold = (productName: string) => {
+    return dailyPortions[productName]?.criticalThreshold ?? 20;
+  };
+
+  const isLimited = (productName: string) => {
+    return dailyPortions[productName]?.isLimited ?? false;
+  };
+
+  return (
+    <Modal show={show} onHide={onHide} size="xl">
+      <Modal.Header closeButton>
+        <Modal.Title>🍕 Admin - Gestione Porzioni</Modal.Title>
+      </Modal.Header>
+      <Modal.Body style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+        {allPortionItems.length === 0 ? (
+          <div>
+            <p className="text-muted">Nessun prodotto con colonna 'dailyPortions' configurata in Google Sheets.</p>
+            <p className="text-info">Aggiungi una colonna 'dailyPortions' nel tuo Google Sheet per abilitare il controllo porzioni.</p>
+          </div>
+        ) : (
+          <>
+            <Row className="mb-2 text-muted small sticky-top bg-white py-2">
+              <Col xs={3}><strong>Prodotto</strong></Col>
+              <Col xs={2} className="text-center"><strong>Google Sheets</strong></Col>
+              <Col xs={2} className="text-center"><strong>Attuale</strong></Col>
+              <Col xs={4} className="text-center"><strong>Azioni</strong></Col>
+              <Col xs={1} className="text-center"><strong>Reset</strong></Col>
+            </Row>
+            <hr className="mt-0" />
+            {allPortionItems.map(([productName, product]: [string, any]) => {
+              const remaining = getCurrentRemaining(productName);
+              const threshold = getCriticalThreshold(productName);
+              const sheetsValue = product.dailyPortions;
+              const sheetsThreshold = product.criticalThreshold;
+              const limited = isLimited(productName);
+              
+              return (
+                <Row key={productName} className="mb-3 align-items-center border-bottom pb-2">
+                  <Col xs={3}>
+                    <strong>{productName}</strong>
+                  </Col>
+                  <Col xs={2} className="text-center">
+                    <div>
+                      <span className="badge bg-secondary me-1">
+                        {sheetsValue === "" || sheetsValue === undefined ? "∞" : sheetsValue}
+                      </span>
+                      {(sheetsThreshold !== "" && sheetsThreshold !== undefined) && (
+                        <span className="badge bg-info">
+                          ⚠️{sheetsThreshold}
+                        </span>
+                      )}
+                    </div>
+                  </Col>
+                  <Col xs={2} className="text-center">
+                    {limited ? (
+                      <div>
+                        <span style={{ fontSize: '1.2em' }}>
+                          {getStatusIcon(remaining, threshold)} {remaining}
+                        </span>
+                        {(() => {
+                          const sheetsThresholdValue = parseInt(sheetsThreshold) || 20;
+                          const actualThreshold = threshold;
+                          
+                          // Show actual threshold if different from sheets
+                          if (actualThreshold !== sheetsThresholdValue) {
+                            return (
+                              <div className="mt-1">
+                                <span className="badge bg-warning text-dark small">
+                                  ⚠️{actualThreshold} (actual)
+                                </span>
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </div>
+                    ) : (
+                      <span className="text-muted">∞ (illimitato)</span>
+                    )}
+                  </Col>
+                  <Col xs={4} className="text-center">
+                    {limited ? (
+                      <ButtonGroup size="sm">
+                        <Button variant="outline-danger" onClick={() => onUpdatePortion(productName, -10)}>
+                          -10
+                        </Button>
+                        <Button variant="outline-success" onClick={() => onUpdatePortion(productName, 10)}>
+                          +10
+                        </Button>
+                        <Button variant="outline-success" onClick={() => onUpdatePortion(productName, 25)}>
+                          +25
+                        </Button>
+                        <Button variant="outline-success" onClick={() => onUpdatePortion(productName, 50)}>
+                          +50
+                        </Button>
+                      </ButtonGroup>
+                    ) : (
+                      <span className="text-muted small">Non limitato</span>
+                    )}
+                  </Col>
+                  <Col xs={1} className="text-center">
+                    {limited ? (
+                      <Button 
+                        variant="outline-warning" 
+                        size="sm"
+                        onClick={() => onResetSingle(productName)}
+                        title="Reset ai valori di Google Sheets"
+                      >
+                        🔄
+                      </Button>
+                    ) : (
+                      <span className="text-muted small">-</span>
+                    )}
+                  </Col>
+                </Row>
+              );
+            })}
+          </>
+        )}
+      </Modal.Body>
+      <Modal.Footer>
+        <div className="me-auto small text-muted">
+          💡 Usa 🔄 per resettare singoli prodotti o "Reset Tutto" per ricaricare tutto da Google Sheets
+        </div>
+        <Button variant="warning" onClick={onForceReload}>
+          🔄 Reset Tutto da Google Sheets
+        </Button>
+        <Button variant="secondary" onClick={onHide}>
+          Chiudi
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
 }
 
 export default App;

@@ -6,6 +6,7 @@ import {
   decrement,
   editNotes,
   selectProducts,
+  selectDailyPortions,
   displayEuroCents,
 } from './orderSlice';
 import styles from './Order.module.css';
@@ -26,6 +27,7 @@ import Modal from 'react-bootstrap/Modal';
 
 export function Order({ coperti, tavolo }: { coperti: string, tavolo: string }) {
   const products = useAppSelector(selectProducts);
+  const dailyPortions = useAppSelector(selectDailyPortions);
 
   const totalEuroCents = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
 
@@ -40,7 +42,7 @@ export function Order({ coperti, tavolo }: { coperti: string, tavolo: string }) 
 
     {
       Object.entries(products)
-        .map(([key, product]) => <ProductRow key={key} productKey={key} product={product} />)
+        .map(([key, product]) => <ProductRow key={key} productKey={key} product={product} dailyPortion={dailyPortions[key]} />)
     }
 
     <Row>
@@ -55,16 +57,31 @@ function ProductRow(props: any) {
   const totalPriceCents = props.product.euroCents * props.product.quantity
   const backgroundColor = props.product.color
   const color = getTextColor(props.product.color)
+  
+  // Check if we should show portion warning
+  const portion = props.dailyPortion;
+  const shouldShowWarning = portion && portion.isLimited && portion.remaining <= portion.criticalThreshold;
+  const isLowStock = portion && portion.isLimited && portion.remaining <= 5;
+  
   return <React.Fragment>
     <Row className={styles.orderRow}>
       {/* Nome del piatto */}
       <Col className="my-auto">
         <Badge pill bg="" style={{backgroundColor, color, fontSize: "1em"}} onClick={() => dispatch(increment(props.productKey))}>
           {showName(props.product.name)}
-          </Badge>
+        </Badge>
         <Button variant="link" onClick={() => setIsEditing(true)}>
           <EditIcon className="mb-1" />
         </Button>
+        {shouldShowWarning && (
+          <span className="ms-2">
+            {isLowStock ? (
+              <span style={{ color: '#ff0000', fontWeight: 'bold' }}>🔴 {portion.remaining} rimaste</span>
+            ) : (
+              <span style={{ color: '#ff6600', fontWeight: 'bold' }}>⚠️ {portion.remaining} rimaste</span>
+            )}
+          </span>
+        )}
       </Col>
 
       {/* Prezzo unitario */}
