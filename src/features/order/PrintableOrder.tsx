@@ -34,14 +34,9 @@ export function Total({ onBack, onConfirm, given, setGiven, mode, setMode }: { o
 
   return <>
     <Container fluid style={{paddingTop: 30, textAlign: "center"}} >
-      <h3>Totale da pagare:</h3>
-      <h2>{displayEuroCents(total)}</h2>
 
-      <h3 style={{paddingTop: 30}}>Totale pagato:</h3>
-      <h2>{mode === "cash" ? displayEuroCents(given) : mode === "POS" ? displayEuroCents(total) : "-"}</h2>
 
-      <Button variant="outline-secondary" className="mt-3" onClick={() => { setGiven(0) }}>Cancella</Button>
-      <ButtonGroup className="mt-3 mx-3" >
+      <ButtonGroup>
         <ToggleButton id="mode-cash" value="cash" type="radio" variant={mode === "cash" ? "primary" : "outline-primary"} size="lg" checked={mode === "cash"} onChange={(e) => setMode(e.target.value)}>Contanti</ToggleButton>
         <ToggleButton id="mode-POS" value="POS" type="radio" variant={mode === "POS" ? "primary" : "outline-primary"} size="lg" checked={mode === "POS"} onChange={(e) => setMode(e.target.value)}>POS</ToggleButton>
         <ToggleButton id="mode-servizio" value="servizio" type="radio" variant={mode === "servizio" ? "primary" : "outline-primary"} size="lg" checked={mode === "servizio"} onChange={(e) => setMode(e.target.value)}>Servizio</ToggleButton>
@@ -50,43 +45,58 @@ export function Total({ onBack, onConfirm, given, setGiven, mode, setMode }: { o
       <Row style={{paddingTop: 10}}>
         <Col xs={3} />
         <Col xs={2} className="d-flex justify-content-center align-items-center">
-          <Image style={{margin: "auto"}} roundedCircle thumbnail src={cent50} alt={displayEuroCents(50)} onClick={() => { setGiven((given) => given + 50) }} />
+          <Image style={{ margin: "auto", maxWidth: "100px" }} roundedCircle thumbnail src={cent50} alt={displayEuroCents(50)} onClick={() => { setGiven((given) => given + 50) }} />
         </Col>
         <Col xs={2} className="d-flex justify-content-center align-items-center">
-          <Image style={{margin: "auto"}} roundedCircle thumbnail src={eur1} alt={displayEuroCents(100)} onClick={() => { setGiven((given) => given + 100) }} />
+          <Image style={{ margin: "auto", maxWidth: "100px" }} roundedCircle thumbnail src={eur1} alt={displayEuroCents(100)} onClick={() => { setGiven((given) => given + 100) }} />
         </Col>
         <Col xs={2} className="d-flex justify-content-center align-items-center">
-          <Image style={{margin: "auto"}} roundedCircle thumbnail src={eur2} alt={displayEuroCents(200)} onClick={() => { setGiven((given) => given + 200) }} />
+          <Image style={{ margin: "auto", maxWidth: "100px" }} roundedCircle thumbnail src={eur2} alt={displayEuroCents(200)} onClick={() => { setGiven((given) => given + 200) }} />
         </Col>
       </Row>
 
-      <Row>
-        <Col xs={4} className="d-flex justify-content-center align-items-center">
-          <Image style={{margin: "auto"}} thumbnail src={eur5} alt={displayEuroCents(500)} onClick={() => { setGiven((given) => given + 500) }} />
+      <Row style={{paddingTop: 10}}>
+        <Col xs={3} />
+        <Col xs={2} className="d-flex justify-content-center align-items-center">
+          <Image style={{ margin: "auto", maxWidth: "160px" }} thumbnail src={eur5} alt={displayEuroCents(500)} onClick={() => { setGiven((given) => given + 500) }} />
         </Col>
-        <Col xs={4} className="d-flex justify-content-center align-items-center">
-          <Image style={{margin: "auto"}} thumbnail src={eur10} alt={displayEuroCents(1000)} onClick={() => { setGiven((given) => given + 1000) }} />
+        <Col xs={2} className="d-flex justify-content-center align-items-center">
+          <Image style={{ margin: "auto", maxWidth: "160px" }} thumbnail src={eur10} alt={displayEuroCents(1000)} onClick={() => { setGiven((given) => given + 1000) }} />
         </Col>
-        <Col xs={4} className="d-flex justify-content-center align-items-center">
-          <Image style={{margin: "auto"}} thumbnail src={eur20} alt={displayEuroCents(2000)} onClick={() => { setGiven((given) => given + 2000) }} />
-        </Col>
-      </Row>
-
-      <Row>
-        <Col xs={4} className="d-flex justify-content-center align-items-center">
-          <Image style={{margin: "auto"}} thumbnail src={eur50} alt={displayEuroCents(5000)} onClick={() => { setGiven((given) => given + 5000) }} />
-        </Col>
-        <Col xs={4} className="d-flex justify-content-center align-items-center">
-          <Image style={{margin: "auto"}} thumbnail src={eur100} alt={displayEuroCents(10000)} onClick={() => { setGiven((given) => given + 10000) }} />
+        <Col xs={2} className="d-flex justify-content-center align-items-center">
+          <Image style={{ margin: "auto", maxWidth: "160px" }} thumbnail src={eur20} alt={displayEuroCents(2000)} onClick={() => { setGiven((given) => given + 2000) }} />
         </Col>
       </Row>
 
-      <h3 style={{paddingTop: 30}}>Resto:</h3>
-      {resto >= 0 ? <h2>{displayEuroCents(resto)}</h2> : <h3>(mancano {displayEuroCents(-resto)})</h3>}
+      <Row style={{paddingTop: 10}}>
+        <Col xs={3} />
+        <Col xs={2} className="d-flex justify-content-center align-items-center">
+          <Image style={{ margin: "auto", maxWidth: "160px" }} thumbnail src={eur50} alt={displayEuroCents(5000)} onClick={() => { setGiven((given) => given + 5000) }} />
+        </Col>
+        <Col xs={2} className="d-flex justify-content-center align-items-center">
+          <Image style={{ margin: "auto", maxWidth: "160px" }} thumbnail src={eur100} alt={displayEuroCents(10000)} onClick={() => { setGiven((given) => given + 10000) }} />
+        </Col>
+      </Row>
+
+      <Row style={{paddingTop: 10}}>
+        <Col>
+        <h3>Totale da pagare:</h3>
+        <h2>{displayEuroCents(total)}</h2>
+        </Col>
+        <Col>
+        <h3>Ricevuto dal cliente:</h3>
+        <h2>{mode === "cash" ? displayEuroCents(given) : mode === "POS" ? displayEuroCents(total) : "-"}</h2>
+        </Col>
+        <Col>
+        <h3>Resto:</h3>
+        {resto >= 0 ? <h2>{displayEuroCents(resto)}</h2> : <h3>(mancano {displayEuroCents(-resto)})</h3>}
+        </Col>
+      </Row>
     </Container>
 
     <Container style={{paddingTop: 30}} className="text-center">
       <Button style={{ marginRight: 20 }} variant="link" size="sm" onClick={onBack}>Torna indietro</Button>
+      <Button style={{ marginRight: 20 }} variant="outline-secondary" onClick={() => { setGiven(0) }}>Cancella</Button>
       <Button size="lg" onClick={onConfirm} disabled={resto < 0}>Conferma e stampa</Button>
       { resto < 0 && <p className="text-danger">mancano {displayEuroCents(-resto)}, indica il pagamento del cliente per continuare</p> }
     </Container>
