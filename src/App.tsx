@@ -444,17 +444,17 @@ function AdminModal({ show, onHide, dailyPortions, onUpdatePortion, onResetSingl
                   <Col xs={4} className="text-center">
                     {limited ? (
                       <ButtonGroup size="sm">
-                        <Button variant="outline-danger" onClick={() => onUpdatePortion(productName, -10)}>
-                          -10
+                        <Button variant="outline-danger" onClick={() => onUpdatePortion(productName, -1)}>
+                          -1
+                        </Button>
+                        <Button variant="outline-success" onClick={() => onUpdatePortion(productName, 1)}>
+                          +1
+                        </Button>
+                        <Button variant="outline-success" onClick={() => onUpdatePortion(productName, 5)}>
+                          +5
                         </Button>
                         <Button variant="outline-success" onClick={() => onUpdatePortion(productName, 10)}>
                           +10
-                        </Button>
-                        <Button variant="outline-success" onClick={() => onUpdatePortion(productName, 25)}>
-                          +25
-                        </Button>
-                        <Button variant="outline-success" onClick={() => onUpdatePortion(productName, 50)}>
-                          +50
                         </Button>
                       </ButtonGroup>
                     ) : (

@@ -63,7 +63,7 @@ The app follows a 5-step workflow:
 - **POS**: Electronic payment (no change needed)
 - **Service**: Complimentary service (no payment)
 
-### 4. **Daily Portion Tracking** *(NEW FEATURE)*
+### 4. **Daily Portion Tracking**
 - **Automatic Reset**: Portions reset daily at 4pm Italian time
 - **Visual Warnings**: Shows remaining portions when below critical threshold
 - **Firebase Storage**: Uses date-based document IDs (YYYY-MM-DD) for historical tracking
