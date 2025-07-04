@@ -272,10 +272,11 @@ function Pre({coperti, setCoperti, tavolo, setTavolo} : PreProps) {
     if (coperti === "Aggiunta") return
     setCoperti(coperti => coperti.replace(/\D/g,''))
   }
+  const shouldShowTavoloTastierino = false
 
   return <Container className="my-5 text-center">
     <Row>
-      <Col xs={6}>
+      <Col xs={12}>
         <h2>Quanti coperti?</h2>
         <h1>{displayCoperti(coperti)}</h1>
         <Tastierino value={coperti} setValue={setCoperti} onClick={() => setCoperti(coperti => coperti.replace(/\D/g,''))} />
@@ -284,11 +285,11 @@ function Pre({coperti, setCoperti, tavolo, setTavolo} : PreProps) {
         <Button size="lg" className="mt-3 mx-3" onClick={handleTapAggiunta}>Aggiunta</Button>
       </Col>
 
-      <Col xs={6}>
+      {shouldShowTavoloTastierino && <Col xs={6}>
         <h2>Numero del tavolo</h2>
         <h1>{tavolo || "..."}</h1>
         <Tastierino value={tavolo} setValue={setTavolo} onClick={handleTastierinoClick} />
-      </Col>
+      </Col>}
     </Row>
   </Container>
 }
