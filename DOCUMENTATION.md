@@ -200,7 +200,7 @@ The app follows a 5-step workflow:
 }
 ```
 
-#### **`sagre/{SAGRA_ID}/dailyPortions/{YYYY-MM-DD}`** *(NEW)*
+#### `sagre/{SAGRA_ID}/dailyPortions/{YYYY-MM-DD}`
 ```javascript
 {
   date: string,           // Date string (YYYY-MM-DD)

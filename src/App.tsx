@@ -44,6 +44,7 @@ function App({ firestore }: { firestore: any }) {
   const [orderId, setOrderId] = useState(null)
   const [altCountPrefix, setAltCountPrefix] = useCountPrefix()
   const [showAdminModal, setShowAdminModal] = useState(false)
+  const [showCancelModal, setShowCancelModal] = useState(false)
   
   const [given, setGiven] = useState(0)
   const [mode, setMode] = useState("cash")
@@ -86,6 +87,7 @@ function App({ firestore }: { firestore: any }) {
     const newOrderId = await logOrder(firestore, {
       id: orderId,
       count: store.getState().counter.value,
+      prefix: altCountPrefix,
       products: orderedProducts,
       mode: mode
     })
@@ -164,6 +166,9 @@ function App({ firestore }: { firestore: any }) {
               &gt; Fatto
             </Nav.Link>
           </Nav>
+          <Button variant="outline-danger" className="ms-auto" disabled={["pre", "done"].includes(navigation)} onClick={() => setShowCancelModal(true)}>
+            Annulla ordine
+          </Button>
         </Container>
       </Navbar>
 
@@ -244,6 +249,41 @@ function App({ firestore }: { firestore: any }) {
       onResetSingle={handleResetSinglePortion}
       onForceReload={handleForceReload}
     />
+
+    {/* Cancel Order Modal */}
+    <Modal
+      show={showCancelModal}
+      onHide={() => setShowCancelModal(false)}
+      centered
+    >
+      <Modal.Header closeButton>
+        <Modal.Title>Annulla ordine</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        {count ? (
+          <div>
+            <p className="h5 text-danger">
+              ❗ L'ordine #{count} risulta già pagato, confermato e stampato, la cucina potrebbe averlo già ricevuto.
+              Se vuoi annullarlo assicurati di coordinarti con la cucina e controllare la cassa.
+            </p>
+            <p className="mt-3">Vuoi comunque annullare l'ordine corrente e ricominciare da capo?</p>
+          </div>
+        ) : (
+          <>Vuoi annullare l'ordine corrente e ricominciare da capo?</>
+        )}
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={() => setShowCancelModal(false)}>
+          No, chiudi questa finestra
+        </Button>
+        <Button variant="danger" onClick={() => {
+          handleNewOrder();
+          setShowCancelModal(false);
+        }}>
+          Sì, annulla l'ordine
+        </Button>
+      </Modal.Footer>
+    </Modal>
     </>
   );
 }

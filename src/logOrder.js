@@ -47,6 +47,7 @@ const logOrder = async (firestore, order) => {
 
   const data = {
     count: order.count,
+    prefix: order.prefix,
     cachedQuantity,
     cachedEuroCents,
     created: serverTimestamp(),
