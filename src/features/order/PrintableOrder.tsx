@@ -24,7 +24,7 @@ import eur10 from '../../images/10.jpeg'
 import eur20 from '../../images/20.jpeg'
 import eur50 from '../../images/50.jpeg'
 import eur100 from '../../images/100.jpeg'
-import headerCucina from '../../images/forno-2024.jpeg'
+import headerCucina from '../../images/forno-2025.png'
 
 export function Total({ onBack, onConfirm, given, setGiven, mode, setMode }: { onBack: () => void, onConfirm: () => void, given: number, setGiven: React.Dispatch<React.SetStateAction<number>>, mode: string, setMode: React.Dispatch<React.SetStateAction<string>> }) {
   const products = useAppSelector(selectProducts);
@@ -143,7 +143,7 @@ export function CucinaOrder({ count, coperti, tavolo, given, mode }: { count: st
         </h2>
       </div>
       <div style={{position: "absolute", padding: "5vh 30vw 0 0", margin: 0, width: "100%", textAlign: "center"}}>
-        <h1 style={{ fontSize: "20vw", margin: 0, padding: 0 }}>{count}</h1>
+        <h1 style={{ fontSize: "18vw", margin: 0, padding: 0 }}>{count}</h1>
       </div>
       <div style={{position: "absolute", padding: "20.5vh 30vw 0 0", margin: 0, width: "100%", textAlign: "center"}}>
         <h2 style={{ padding: 0, margin: 0, fontSize: "2.5vw" }}>
