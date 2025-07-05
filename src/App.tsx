@@ -16,6 +16,7 @@ import Modal from 'react-bootstrap/Modal';
 
 import { Order } from './features/order/Order';
 import { RecapOrder, PrintableOrder, Total } from './features/order/PrintableOrder';
+import Resoconto from './features/resoconto/Resoconto';
 import { useAppSelector, useAppDispatch } from './app/hooks';
 import { store } from './app/store';
 import {
@@ -60,6 +61,10 @@ function App({ firestore }: { firestore: any }) {
   useDetectKeypress("pizza", useCallback(() => { 
     console.log("🍕 Pizza shortcut triggered - opening admin panel...");
     setShowAdminModal(true);
+  }, []))
+  useDetectKeypress("resoconto", useCallback(() => {
+    console.log("🔍 Resoconto shortcut triggered - navigating to summary page...");
+    setNavigation("resoconto");
   }, []))
   // useDetectKeypress("down", useCallback(() => { download(firestore) }, [firestore]))
 
@@ -219,6 +224,10 @@ function App({ firestore }: { firestore: any }) {
         navigation === "pay" ?
           <main>
             <Total onBack={() => { setNavigation("recap") }} onConfirm={handleConfirm} given={given} setGiven={setGiven} mode={mode} setMode={setMode} />
+          </main> :
+        navigation === "resoconto" ?
+          <main>
+            <Resoconto firestore={firestore} />
           </main> :
         navigation === "done" ?
           <main>
