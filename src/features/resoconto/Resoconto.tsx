@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { collection, getDocs } from '@firebase/firestore/lite';
 import Nav from 'react-bootstrap/Nav';
 import Table from 'react-bootstrap/Table';
-import Button from 'react-bootstrap/Button';
 
 interface OrderProduct {
   name: string;
