@@ -70,13 +70,19 @@ const getItalianDateString = (date = new Date()): string => {
 
 // Check if we should create new daily portions (after 4pm Italian time)
 const shouldCreateNewDailyPortions = (lastDate: string): boolean => {
-  const now = new Date();
-  const italianTime = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Rome" }));
-  const currentItalianDate = getItalianDateString(italianTime);
-  const currentHour = italianTime.getHours();
+  const currentItalianDate = getItalianDateString();
   
-  // If it's after 4pm and we're on a different date, create new portions
-  return currentHour >= 16 && lastDate !== currentItalianDate;
+  const now = new Date();
+  const italianHour = parseInt(now.toLocaleString("en-US", { 
+    timeZone: "Europe/Rome",
+    hour12: false,
+    hour: "2-digit"
+  }));
+    
+  // Create new portions if it's after 4pm Italian time AND we're on a different date
+  const shouldReset = italianHour >= 16 && lastDate !== currentItalianDate;
+
+  return shouldReset;
 };
 
 export const getDailyPortions = createAsyncThunk(
