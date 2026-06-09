@@ -92,6 +92,10 @@ default 20). Values arrive as strings — `parseInt` before use.
 
 - **Money is integer euro-cents** everywhere. `displayEuroCents` formats for the UI; never
   carry floats.
+- **Payment modes** stored on the order doc: `cash`, `bancomat`, `carta`, `servizio`
+  (plus legacy `POS` in old history docs — keep handling it in reports). Merchant fees
+  (0.6% bancomat, 0.9% carta) are **estimated only in the Resoconto admin view** —
+  never on the payment screen, receipts, or anything customer-facing.
 - **Dates use Italian time (Europe/Rome), not UTC.** Daily portions reset after 16:00
   Rome time and are keyed `YYYY-MM-DD` in Rome time; the report groups by Rome day too.
   When formatting a date for grouping, use
