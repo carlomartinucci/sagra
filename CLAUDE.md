@@ -64,8 +64,11 @@ only the API key comes from env.
 - **`src/features/order/PrintableOrder.tsx`** — the `Total` payment screen, the on-screen
   `RecapOrder`, and the print-only `PrintableOrder` (renders the kitchen receipt twice
   with a page break). Receipt font sizes scale with item count.
-- **`src/features/resoconto/Resoconto.tsx`** — read-only end-of-day report aggregated
-  from `orderHistory`, with per-day and progressive totals split by payment mode.
+- **`src/features/resoconto/Resoconto.tsx`** — read-only report aggregated from
+  `orderHistory`. Two modes: **"Serata (ultime N ore)"** (4/6/8/12/24h rolling window,
+  the right tool for an evening that crosses midnight) and **"Per giornata"** (Italian
+  calendar-day tabs with parziale + progressivo). Both are computed from the same raw
+  order list and split totals by payment mode.
 - **`src/logOrder.js`** — writes/updates an order document in `orderHistory`.
 - **`src/googleSheetsMapper.js`** — fetches the `menu` worksheet and maps header row →
   array of record objects.
@@ -92,10 +95,19 @@ default 20). Values arrive as strings — `parseInt` before use.
   Rome time and are keyed `YYYY-MM-DD` in Rome time; the report groups by Rome day too.
   When formatting a date for grouping, use
   `date.toLocaleDateString('sv-SE', { timeZone: 'Europe/Rome' })`.
-- **Offline-first.** Menu is cached in `localStorage["menu"]`; portion decrements queue
-  under `localStorage["pendingPortionDecrements"]`; the counter has a localStorage
-  fallback. Code paths must not assume Firebase/Sheets are reachable.
-- **Portions are advisory, not blocking** — sold-out items can still be ordered (warning only).
+- **Offline-first.** Menu is cached in `localStorage["menu"]`; the order counter has a
+  localStorage fallback. Code paths must not assume Firebase/Sheets are reachable.
+- **Stock / daily portions are decremented atomically.** `decrementPortion` uses
+  Firestore's `increment()` on a single nested field (`portions.<name>.remaining`) via a
+  `FieldPath` — never a read-modify-write of the whole `portions` map (that lost updates
+  across multiple products/terminals). Admin edits use `setPortionRemaining` (absolute
+  write) so the server re-syncs to the operator's value. Decrements that fail offline are
+  queued under `localStorage["pendingPortionDecrements"]` and replayed by
+  `flushPendingPortionDecrements` on the next load. `increment` is imported as
+  `fbIncrement` to avoid colliding with the local `increment` reducer action.
+- **Portions are advisory, not blocking** — sold-out items can still be ordered (warning
+  only), and Firebase `remaining` may go slightly negative on oversell; the UI clamps the
+  displayed count at 0.
 - **Hidden keyboard shortcuts** (type the word anywhere, handled by `useDetectKeypress`):
   - `alpaca` → clear the offline counter prefix (re-show A/B/C picker)
   - `pizza` → open the portions admin modal
