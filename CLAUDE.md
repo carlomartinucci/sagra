@@ -42,6 +42,7 @@ REACT_APP_FIREBASE_API_KEY=...
 REACT_APP_SAGRA_ID=...        # picks the Firestore document namespace, e.g. forno-luglio-2025
 REACT_APP_SHEET_ID=...        # Google Sheet id holding the "menu" worksheet
 REACT_APP_SHEETS_API_KEY=...
+REACT_APP_PASSWORD=...        # optional access gate; empty/unset disables it
 ```
 
 Firebase project config is hardcoded in `src/index.tsx` (project `sagra-360015`);
@@ -108,6 +109,11 @@ default 20). Values arrive as strings — `parseInt` before use.
 - **Portions are advisory, not blocking** — sold-out items can still be ordered (warning
   only), and Firebase `remaining` may go slightly negative on oversell; the UI clamps the
   displayed count at 0.
+- **Access gate.** If `REACT_APP_PASSWORD` is set, `App` shows a `PasswordGate`
+  before anything else. A correct password is stored in the `sagraAccess` cookie keyed
+  by the current "service day" (`currentServiceDayKey`, which rolls over at 17:00
+  Europe/Rome), so staff re-enter once per evening. Empty/unset password disables the
+  gate (e.g. in tests). The password is in the client bundle — convenience, not security.
 - **Hidden keyboard shortcuts** (type the word anywhere, handled by `useDetectKeypress`):
   - `alpaca` → clear the offline counter prefix (re-show A/B/C picker)
   - `pizza` → open the portions admin modal
