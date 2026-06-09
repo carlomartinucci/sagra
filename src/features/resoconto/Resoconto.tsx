@@ -4,6 +4,8 @@ import Nav from 'react-bootstrap/Nav';
 import Table from 'react-bootstrap/Table';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Button from 'react-bootstrap/Button';
+import { useAppSelector } from '../../app/hooks';
+import { selectProducts } from '../order/orderSlice';
 
 interface OrderProduct {
   name: string;
@@ -96,6 +98,23 @@ function aggregate(orders: RawOrder[]): AggregatedDay {
 
 const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
   const today = getTodayISO();
+
+  // The menu (with its `order` field) lives in the store; use it so the report
+  // lists dishes in the same order as the menu instead of by quantity or by the
+  // order they first appeared in the history. Products no longer in the menu
+  // (e.g. renamed) fall to the bottom, alphabetically.
+  const menuProducts = useAppSelector(selectProducts);
+  const menuRank = (name: string): number => {
+    const p = menuProducts[name];
+    return p && typeof p.order === 'number' && !Number.isNaN(p.order) ? p.order : Number.MAX_SAFE_INTEGER;
+  };
+  const byMenuOrder = (
+    a: [string, { quantity: number; euroCents: number }],
+    b: [string, { quantity: number; euroCents: number }]
+  ): number => {
+    const diff = menuRank(a[0]) - menuRank(b[0]);
+    return diff !== 0 ? diff : a[0].localeCompare(b[0]);
+  };
 
   const [viewMode, setViewMode] = useState<'serata' | 'giornata'>('serata');
   const [hoursBack, setHoursBack] = useState<number>(DEFAULT_HOURS_BACK);
@@ -269,7 +288,7 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
                 </thead>
                 <tbody>
                   {serataProducts
-                    .sort((a, b) => b[1].quantity - a[1].quantity)
+                    .sort(byMenuOrder)
                     .map(([name, info]) => (
                       <tr key={name}>
                         <td>{name}</td>
@@ -319,7 +338,7 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {Object.entries(progressiveAgg.products).map(([name, progInfo]) => {
+                  {Object.entries(progressiveAgg.products).sort(byMenuOrder).map(([name, progInfo]) => {
                     const dayQty = dayAgg.products[name]?.quantity || 0;
                     return (
                       <tr key={name}>
