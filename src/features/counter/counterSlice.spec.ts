@@ -11,7 +11,8 @@ describe('counter reducer', () => {
   };
   it('should handle initial state', () => {
     expect(counterReducer(undefined, { type: 'unknown' })).toEqual({
-      value: 0,
+      value: undefined,
+      isOnline: true,
     });
   });
 

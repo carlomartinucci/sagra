@@ -38,8 +38,10 @@ const CACHE_PREFIX = `resoconto_cache_${SAGRA_ID}_`;
 const CACHE_TTL_MS_TODAY = process.env.NODE_ENV === 'development' ? 10 * 1000 : 10 * 60 * 1000; // 10s dev, 10m prod
 
 function formatDate(date: Date): string {
-  // Returns YYYY-MM-DD
-  return date.toISOString().split('T')[0];
+  // Returns YYYY-MM-DD in Italian time, consistent with the rest of the app
+  // (daily portions, order grouping). Using UTC here would misattribute orders
+  // placed around midnight to the wrong day.
+  return date.toLocaleDateString('sv-SE', { timeZone: 'Europe/Rome' });
 }
 
 function getTodayISO(): string {
@@ -98,6 +100,7 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
 
         const dayAgg = aggregations[dateISO];
 
+        let orderEuroCents = 0;
         data.products.forEach((product) => {
           if (!dayAgg.products[product.name]) {
             dayAgg.products[product.name] = { quantity: 0, euroCents: 0 };
@@ -107,15 +110,17 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
             const productTotal = product.euroCents * product.quantity;
             dayAgg.products[product.name].euroCents += productTotal;
             dayAgg.totalsEuroCents += productTotal;
+            orderEuroCents += productTotal;
           }
         });
 
-        // Totals by payment mode
+        // Totals by payment mode. Fall back to this order's own total (not the
+        // running day total) for legacy docs without cachedEuroCents.
         const mode = (data as any).mode || 'cash';
         if (!dayAgg.totalsByMode[mode]) {
           dayAgg.totalsByMode[mode] = 0;
         }
-        dayAgg.totalsByMode[mode] += data.cachedEuroCents ?? dayAgg.totalsEuroCents; // fallback for old docs
+        dayAgg.totalsByMode[mode] += data.cachedEuroCents ?? orderEuroCents;
       });
 
       setAggregatedByDate(aggregations);

@@ -54,7 +54,9 @@ export const getMenu = createAsyncThunk(
 
     try {
       const rawMenu = window.localStorage.getItem("menu")
-      return JSON.parse(rawMenu ?? "{}")
+      // Menu is always an array of products; default to [] so the reducer's
+      // `for...of` over the payload doesn't crash when offline with no cache.
+      return JSON.parse(rawMenu ?? "[]")
     } catch (error) {
       console.error(error)
     }
