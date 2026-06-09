@@ -62,6 +62,7 @@ function ProductRow(props: any) {
   const portion = props.dailyPortion;
   const shouldShowWarning = portion && portion.isLimited && portion.remaining <= portion.criticalThreshold;
   const isLowStock = portion && portion.isLimited && portion.remaining <= 5;
+  const remainingLabel = portion ? Math.max(0, portion.remaining) : 0;
   
   return <React.Fragment>
     <Row className={styles.orderRow}>
@@ -76,9 +77,9 @@ function ProductRow(props: any) {
         {shouldShowWarning && (
           <span className="ms-2">
             {isLowStock ? (
-              <span style={{ color: '#ff0000', fontWeight: 'bold' }}>🔴 {portion.remaining} rimaste</span>
+              <span style={{ color: '#ff0000', fontWeight: 'bold' }}>🔴 {remainingLabel} rimaste</span>
             ) : (
-              <span style={{ color: '#ff6600', fontWeight: 'bold' }}>⚠️ {portion.remaining} rimaste</span>
+              <span style={{ color: '#ff6600', fontWeight: 'bold' }}>⚠️ {remainingLabel} rimaste</span>
             )}
           </span>
         )}

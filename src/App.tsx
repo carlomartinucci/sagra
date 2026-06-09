@@ -37,6 +37,8 @@ import {
   decrementPortionLocal,
   forceReloadDailyPortions,
   updatePortionManually,
+  setPortionRemaining,
+  flushPendingPortionDecrements,
   resetSinglePortion
 } from './features/order/orderSlice';
 
@@ -119,8 +121,12 @@ function App({ firestore }: { firestore: any }) {
   }, [dispatch])
 
   useEffect(() => {
-    // Load daily portions after menu is loaded
-    dispatch(getDailyPortions(firestore))
+    // Replay any decrements queued while offline, then load the current portions
+    // so the displayed counts reflect those replayed decrements.
+    (async () => {
+      await dispatch(flushPendingPortionDecrements(firestore))
+      dispatch(getDailyPortions(firestore))
+    })()
   }, [dispatch, firestore])
 
   const handleForceReload = async () => {
@@ -137,15 +143,12 @@ function App({ firestore }: { firestore: any }) {
   const handleUpdatePortion = (productName: string, change: number) => {
     const currentPortion = dailyPortions[productName];
     if (currentPortion) {
-      const newQuantity = currentPortion.remaining + change;
+      const newQuantity = Math.max(0, currentPortion.remaining + change);
+      // Optimistic local update for instant feedback...
       dispatch(updatePortionManually({ productName, newQuantity }));
-      
-      // Also update Firebase
-      dispatch(decrementPortion({ 
-        firestore, 
-        productName, 
-        quantity: -change // negative to increase
-      }));
+      // ...then write the absolute value to Firebase so the server is re-synced
+      // to exactly what the operator set (no relative-increment drift).
+      dispatch(setPortionRemaining({ firestore, productName, newRemaining: newQuantity }));
     }
   }
 
@@ -408,7 +411,7 @@ function AdminModal({ show, onHide, dailyPortions, onUpdatePortion, onResetSingl
   };
 
   const getCurrentRemaining = (productName: string) => {
-    return dailyPortions[productName]?.remaining ?? 0;
+    return Math.max(0, dailyPortions[productName]?.remaining ?? 0);
   };
 
   const getCriticalThreshold = (productName: string) => {

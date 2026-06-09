@@ -2,10 +2,18 @@ import { useState, useEffect, useCallback } from 'react';
 
 const useDetectKeypress = (string: string, callback: () => void) => {
   const [something, setSomething] = useState("")
-  if (something === string) {
-    callback()
-    setSomething("")
-  }
+
+  // Fire the callback in an effect rather than during render: invoking a
+  // parent's setState while this hook renders triggers React's "Cannot update a
+  // component while rendering a different component" error and makes the
+  // shortcuts unreliable.
+  useEffect(() => {
+    if (something === string) {
+      callback()
+      setSomething("")
+    }
+  }, [something, string, callback])
+
   const onKeyDown = useCallback((event: any) => {
     if (!event.key) return
     if (event.altKey) return

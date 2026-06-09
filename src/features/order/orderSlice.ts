@@ -6,7 +6,9 @@ import {
   getDoc,
   setDoc,
   updateDoc,
-  serverTimestamp
+  serverTimestamp,
+  increment as fbIncrement,
+  FieldPath
 } from '@firebase/firestore/lite';
 
 export interface OrderState {
@@ -54,7 +56,9 @@ export const getMenu = createAsyncThunk(
 
     try {
       const rawMenu = window.localStorage.getItem("menu")
-      return JSON.parse(rawMenu ?? "{}")
+      // Menu is always an array of products; default to [] so the reducer's
+      // `for...of` over the payload doesn't crash when offline with no cache.
+      return JSON.parse(rawMenu ?? "[]")
     } catch (error) {
       console.error(error)
     }
@@ -261,38 +265,80 @@ export const resetSinglePortion = createAsyncThunk(
       
       const originalRemaining = parseInt(menuItem.dailyPortions);
       const originalThreshold = parseInt(menuItem.criticalThreshold) || 20;
-      
-      // Update Firebase
+
+      // Write only this product's entry (via FieldPath) instead of rewriting the
+      // whole portions map, so a reset can never clobber other products' counts.
       const docRef = doc(firestore, `sagre/${process.env.REACT_APP_SAGRA_ID}/dailyPortions`, currentDate);
-      const docSnap = await getDoc(docRef);
-      
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const portions = data.portions || {};
-        
-        portions[productName] = {
-          remaining: originalRemaining,
-          criticalThreshold: originalThreshold,
-          isLimited: true
-        };
-        
-        await updateDoc(docRef, { portions });
-        
-        // Cache in localStorage
-        window.localStorage.setItem(`dailyPortions_${currentDate}`, JSON.stringify(portions));
-        
-        console.log(`✅ ${productName} reset to: ${originalRemaining} portions, threshold: ${originalThreshold}`);
-        
-        return { 
-          productName, 
-          newRemaining: originalRemaining, 
-          newThreshold: originalThreshold 
-        };
-      }
+      await updateDoc(docRef, new FieldPath('portions', productName), {
+        remaining: originalRemaining,
+        criticalThreshold: originalThreshold,
+        isLimited: true
+      });
+
+      console.log(`✅ ${productName} reset to: ${originalRemaining} portions, threshold: ${originalThreshold}`);
+
+      return {
+        productName,
+        newRemaining: originalRemaining,
+        newThreshold: originalThreshold
+      };
     } catch (error) {
       console.error(`❌ Error resetting ${productName}:`, error);
     }
-    
+
+    return null;
+  }
+);
+
+// Absolute setter for admin adjustments. Writing a known value (rather than a
+// relative change) re-syncs Firebase to the operator's intent and heals any
+// drift between the local optimistic count and the server count.
+export const setPortionRemaining = createAsyncThunk(
+  'order/setPortionRemaining',
+  async ({ firestore, productName, newRemaining }: { firestore: any, productName: string, newRemaining: number }, { getState }) => {
+    const state = getState() as RootState;
+    const currentDate = state.order.currentDate;
+
+    try {
+      const docRef = doc(firestore, `sagre/${process.env.REACT_APP_SAGRA_ID}/dailyPortions`, currentDate);
+      await updateDoc(docRef, new FieldPath('portions', productName, 'remaining'), newRemaining);
+    } catch (error) {
+      console.error(`Error setting portion for ${productName}:`, error);
+    }
+
+    // Reconcile local state even if Firebase is unreachable, so the admin sees
+    // the value they just entered.
+    return { productName, newRemaining };
+  }
+);
+
+// Replay decrements that were queued while offline. Safe to run repeatedly:
+// entries are only queued when the Firebase write failed (so they never
+// applied), and successfully replayed entries are removed from the queue.
+export const flushPendingPortionDecrements = createAsyncThunk(
+  'order/flushPendingPortionDecrements',
+  async (firestore: any) => {
+    const queueKey = 'pendingPortionDecrements';
+    let pending: Array<{ productName: string, quantity: number, date: string }> = [];
+    try {
+      pending = JSON.parse(window.localStorage.getItem(queueKey) || '[]');
+    } catch (e) {
+      window.localStorage.removeItem(queueKey);
+      return null;
+    }
+    if (!pending.length) return null;
+
+    console.log(`🔁 Flushing ${pending.length} pending portion decrement(s)...`);
+    const stillPending: typeof pending = [];
+    for (const entry of pending) {
+      try {
+        const docRef = doc(firestore, `sagre/${process.env.REACT_APP_SAGRA_ID}/dailyPortions`, entry.date);
+        await updateDoc(docRef, new FieldPath('portions', entry.productName, 'remaining'), fbIncrement(-entry.quantity));
+      } catch (error) {
+        stillPending.push(entry); // keep it for the next attempt
+      }
+    }
+    window.localStorage.setItem(queueKey, JSON.stringify(stillPending));
     return null;
   }
 );
@@ -302,37 +348,35 @@ export const decrementPortion = createAsyncThunk(
   async ({ firestore, productName, quantity }: { firestore: any, productName: string, quantity: number }, { getState }) => {
     const state = getState() as RootState;
     const currentDate = state.order.currentDate;
-    
+    const portion = state.order.dailyPortions[productName];
+
+    // Only limited products are tracked in the daily portions document.
+    if (!portion || !portion.isLimited) return null;
+
     try {
       const docRef = doc(firestore, `sagre/${process.env.REACT_APP_SAGRA_ID}/dailyPortions`, currentDate);
-      const docSnap = await getDoc(docRef);
-      
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const portions = data.portions || {};
-        
-        if (portions[productName]) {
-          const newRemaining = Math.max(0, portions[productName].remaining - quantity);
-          portions[productName].remaining = newRemaining;
-          
-          await updateDoc(docRef, { portions });
-          
-          // Cache in localStorage
-          window.localStorage.setItem(`dailyPortions_${currentDate}`, JSON.stringify(portions));
-          
-          return { productName, newRemaining };
-        }
-      }
+      // Atomic, server-side decrement of a single field. This replaces a
+      // read-modify-write of the whole portions map, which lost updates when an
+      // order had several limited products or when two terminals confirmed at
+      // the same time (last write wins). The local optimistic update
+      // (decrementPortionLocal) already reflects the change in the UI, so there
+      // is nothing to reconcile on success.
+      await updateDoc(docRef, new FieldPath('portions', productName, 'remaining'), fbIncrement(-quantity));
     } catch (error) {
       console.error('Error decrementing portion:', error);
-      
-      // Fallback: queue for later sync
+
+      // Offline / transient failure: queue for replay by flushPendingPortionDecrements.
       const queueKey = 'pendingPortionDecrements';
-      const pending = JSON.parse(window.localStorage.getItem(queueKey) || '[]');
+      let pending: Array<any> = [];
+      try {
+        pending = JSON.parse(window.localStorage.getItem(queueKey) || '[]');
+      } catch (e) {
+        pending = [];
+      }
       pending.push({ productName, quantity, date: currentDate, timestamp: Date.now() });
       window.localStorage.setItem(queueKey, JSON.stringify(pending));
     }
-    
+
     return null;
   }
 );
@@ -421,7 +465,7 @@ export const orderSlice = createSlice({
         }
       }
     })
-    .addCase(decrementPortion.fulfilled, (state, action) => {
+    .addCase(setPortionRemaining.fulfilled, (state, action) => {
       if (action.payload) {
         const { productName, newRemaining } = action.payload;
         if (state.dailyPortions[productName]) {
