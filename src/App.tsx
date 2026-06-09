@@ -13,6 +13,7 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Modal from 'react-bootstrap/Modal';
+import Form from 'react-bootstrap/Form';
 
 import { Order } from './features/order/Order';
 import { RecapOrder, PrintableOrder, Total } from './features/order/PrintableOrder';
@@ -42,7 +43,85 @@ import {
   resetSinglePortion
 } from './features/order/orderSlice';
 
+// --- Password gate ---------------------------------------------------------
+// A light access gate: the operator enters a password once per "service day".
+// The day resets at 17:00 Europe/Rome (each evening's staff re-enters once),
+// keyed exactly like the daily-portions logic so timezone/DST is handled the
+// same way. The grant is stored in a cookie on the device. NOTE: like every
+// REACT_APP_* var, the password is baked into the client bundle, so this is a
+// convenience gate, not real security.
+const ACCESS_PASSWORD = process.env.REACT_APP_PASSWORD || "";
+const AUTH_COOKIE = "sagraAccess";
+
+// The Rome date of the most recent 17:00 boundary that has passed. Changes at
+// 17:00 Rome time, so it's the same before and after midnight within one serata.
+const currentServiceDayKey = (now: Date = new Date()): string => {
+  const hour = parseInt(
+    new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', hour: '2-digit', hourCycle: 'h23' }).format(now),
+    10
+  );
+  const romeDate = (d: Date) => d.toLocaleDateString('sv-SE', { timeZone: 'Europe/Rome' });
+  if (hour >= 17) return romeDate(now);
+  // Before 17:00 we still belong to yesterday's 17:00 window.
+  return romeDate(new Date(now.getTime() - 24 * 60 * 60 * 1000));
+};
+
+const getCookie = (name: string): string | undefined => {
+  const match = document.cookie.split('; ').find((row) => row.startsWith(`${name}=`));
+  return match ? decodeURIComponent(match.split('=').slice(1).join('=')) : undefined;
+};
+
+const grantAccess = () => {
+  // 7 days max-age is just cleanup; the service-day key is what enforces the
+  // 17:00 reset (a stale key fails the check even if the cookie still exists).
+  document.cookie = `${AUTH_COOKIE}=${encodeURIComponent(currentServiceDayKey())};path=/;max-age=${7 * 24 * 60 * 60};SameSite=Lax`;
+};
+
+const hasValidAccess = (): boolean => {
+  if (!ACCESS_PASSWORD) return true; // no password configured → gate disabled
+  return getCookie(AUTH_COOKIE) === currentServiceDayKey();
+};
+
+function PasswordGate({ onSuccess }: { onSuccess: () => void }) {
+  const [value, setValue] = useState("");
+  const [error, setError] = useState(false);
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (value === ACCESS_PASSWORD) {
+      grantAccess();
+      onSuccess();
+    } else {
+      setError(true);
+      setValue("");
+    }
+  };
+
+  return (
+    <main>
+      <Container className="text-center" style={{ maxWidth: 420, marginTop: 80 }}>
+        <h2>Accesso cassa</h2>
+        <p>Inserisci la password per usare la cassa.</p>
+        <Form onSubmit={handleSubmit}>
+          <Form.Control
+            type="password"
+            autoFocus
+            value={value}
+            onChange={(e) => { setValue(e.target.value); setError(false); }}
+            placeholder="Password"
+            className="mb-2 text-center"
+            size="lg"
+          />
+          {error && <p className="text-danger">Password errata</p>}
+          <Button type="submit" size="lg" disabled={value === ""}>Entra</Button>
+        </Form>
+      </Container>
+    </main>
+  );
+}
+
 function App({ firestore }: { firestore: any }) {
+  const [authed, setAuthed] = useState(hasValidAccess())
   const [navigation, setNavigation] = useState("pre")
   const [orderId, setOrderId] = useState(null)
   const [altCountPrefix, setAltCountPrefix] = useCountPrefix()
@@ -150,6 +229,10 @@ function App({ firestore }: { firestore: any }) {
       // to exactly what the operator set (no relative-increment drift).
       dispatch(setPortionRemaining({ firestore, productName, newRemaining: newQuantity }));
     }
+  }
+
+  if (!authed) {
+    return <PasswordGate onSuccess={() => setAuthed(true)} />
   }
 
   return (
