@@ -39,7 +39,7 @@ interface AggregatedReport {
 interface AggregatedDay {
   products: AggregatedReport;
   totalsEuroCents: number;
-  totalsByMode: Record<string, number>; // cash, POS, servizio
+  totalsByMode: Record<string, number>; // cash, bancomat, carta, servizio (+ legacy POS)
 }
 
 interface ResocontoProps {
@@ -73,8 +73,19 @@ function getTodayISO(): string {
 }
 
 function emptyAgg(): AggregatedDay {
-  return { products: {}, totalsEuroCents: 0, totalsByMode: { cash: 0, POS: 0, servizio: 0 } };
+  return { products: {}, totalsEuroCents: 0, totalsByMode: { cash: 0, bancomat: 0, carta: 0, POS: 0, servizio: 0 } };
 }
+
+// Merchant fees withheld by the payment provider: 0.6% on bancomat (debit),
+// 0.9% on carta (credit). Estimated HERE ONLY, for the internal report — the
+// customer always pays full price and no fee ever appears in the cash flow UI
+// or on receipts. Legacy "POS" orders predate the bancomat/carta split, so we
+// can't know which rate applies and they are left out of the estimate.
+const FEE_BANCOMAT = 0.006;
+const FEE_CARTA = 0.009;
+const estimatedFeeCents = (totalsByMode: Record<string, number>): number =>
+  Math.round((totalsByMode.bancomat || 0) * FEE_BANCOMAT) +
+  Math.round((totalsByMode.carta || 0) * FEE_CARTA);
 
 // Aggregate a set of raw orders into product totals and per-mode money totals.
 function aggregate(orders: RawOrder[]): AggregatedDay {
@@ -219,6 +230,7 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
   const windowStartMs = refreshedAt - hoursBack * 60 * 60 * 1000;
   const serataAgg = aggregate(orders.filter((o) => o.createdMs >= windowStartMs));
   const serataProducts = Object.entries(serataAgg.products).filter(([, info]) => info.quantity > 0);
+  const serataFee = estimatedFeeCents(serataAgg.totalsByMode);
 
   // ---- "Per giornata" view ----
   const dayAgg = aggregatedByDate[selectedDate];
@@ -242,6 +254,9 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
     }
     return progressive;
   })();
+
+  const dayFee = dayAgg ? estimatedFeeCents(dayAgg.totalsByMode) : 0;
+  const progFee = progressiveAgg ? estimatedFeeCents(progressiveAgg.totalsByMode) : 0;
 
   return (
     <div className="container my-4">
@@ -299,15 +314,31 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
                 </tbody>
               </Table>
 
-              <Table bordered className="mt-4" style={{ maxWidth: 400, margin: '0 auto' }}>
+              <Table bordered className="mt-4" style={{ maxWidth: 460, margin: '0 auto' }}>
                 <tbody>
                   <tr className="table-primary fw-bold">
-                    <td>TOTALE PERIODO</td>
+                    <td>{serataFee > 0 ? 'TOTALE PERIODO (lordo)' : 'TOTALE PERIODO'}</td>
                     <td className="text-end">{displayEuro(serataAgg.totalsEuroCents)}</td>
                   </tr>
                   <tr><td className="ps-4">di cui contanti</td><td className="text-end">{displayEuro(serataAgg.totalsByMode.cash || 0)}</td></tr>
-                  <tr><td className="ps-4">di cui POS</td><td className="text-end">{displayEuro(serataAgg.totalsByMode.POS || 0)}</td></tr>
+                  <tr><td className="ps-4">di cui bancomat</td><td className="text-end">{displayEuro(serataAgg.totalsByMode.bancomat || 0)}</td></tr>
+                  <tr><td className="ps-4">di cui carta</td><td className="text-end">{displayEuro(serataAgg.totalsByMode.carta || 0)}</td></tr>
+                  {(serataAgg.totalsByMode.POS || 0) > 0 && (
+                    <tr><td className="ps-4">di cui POS (storico)</td><td className="text-end">{displayEuro(serataAgg.totalsByMode.POS || 0)}</td></tr>
+                  )}
                   <tr><td className="ps-4">di cui gratuiti</td><td className="text-end">{displayEuro(serataAgg.totalsByMode.servizio || 0)}</td></tr>
+                  {serataFee > 0 && (
+                    <>
+                      <tr className="text-muted">
+                        <td className="ps-4">commissioni stimate (0,6% bancomat, 0,9% carta)</td>
+                        <td className="text-end">{displayEuro(-serataFee)}</td>
+                      </tr>
+                      <tr className="table-success fw-bold">
+                        <td>TOTALE NETTO STIMATO</td>
+                        <td className="text-end">{displayEuro(serataAgg.totalsEuroCents - serataFee)}</td>
+                      </tr>
+                    </>
+                  )}
                 </tbody>
               </Table>
             </>
@@ -351,10 +382,10 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
                 </tbody>
               </Table>
 
-              <Table bordered className="mt-4" style={{ maxWidth: 400, margin: '0 auto' }}>
+              <Table bordered className="mt-4" style={{ maxWidth: 460, margin: '0 auto' }}>
                 <tbody>
                   <tr className="table-primary fw-bold">
-                    <td>SUBTOTALE GIORNATA</td>
+                    <td>{progFee > 0 ? 'SUBTOTALE GIORNATA (lordo)' : 'SUBTOTALE GIORNATA'}</td>
                     <td>{displayEuro(dayAgg.totalsEuroCents)}</td>
                     <td>{displayEuro(progressiveAgg.totalsEuroCents)}</td>
                   </tr>
@@ -364,15 +395,41 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
                     <td>{displayEuro(progressiveAgg.totalsByMode.cash || 0)}</td>
                   </tr>
                   <tr>
-                    <td className="ps-4">di cui POS</td>
-                    <td>{displayEuro(dayAgg.totalsByMode.POS || 0)}</td>
-                    <td>{displayEuro(progressiveAgg.totalsByMode.POS || 0)}</td>
+                    <td className="ps-4">di cui bancomat</td>
+                    <td>{displayEuro(dayAgg.totalsByMode.bancomat || 0)}</td>
+                    <td>{displayEuro(progressiveAgg.totalsByMode.bancomat || 0)}</td>
                   </tr>
+                  <tr>
+                    <td className="ps-4">di cui carta</td>
+                    <td>{displayEuro(dayAgg.totalsByMode.carta || 0)}</td>
+                    <td>{displayEuro(progressiveAgg.totalsByMode.carta || 0)}</td>
+                  </tr>
+                  {(progressiveAgg.totalsByMode.POS || 0) > 0 && (
+                    <tr>
+                      <td className="ps-4">di cui POS (storico)</td>
+                      <td>{displayEuro(dayAgg.totalsByMode.POS || 0)}</td>
+                      <td>{displayEuro(progressiveAgg.totalsByMode.POS || 0)}</td>
+                    </tr>
+                  )}
                   <tr>
                     <td className="ps-4">di cui gratuiti</td>
                     <td>{displayEuro(dayAgg.totalsByMode.servizio || 0)}</td>
                     <td>{displayEuro(progressiveAgg.totalsByMode.servizio || 0)}</td>
                   </tr>
+                  {progFee > 0 && (
+                    <>
+                      <tr className="text-muted">
+                        <td className="ps-4">commissioni stimate (0,6% bancomat, 0,9% carta)</td>
+                        <td>{displayEuro(-dayFee)}</td>
+                        <td>{displayEuro(-progFee)}</td>
+                      </tr>
+                      <tr className="table-success fw-bold">
+                        <td>TOTALE NETTO STIMATO</td>
+                        <td>{displayEuro(dayAgg.totalsEuroCents - dayFee)}</td>
+                        <td>{displayEuro(progressiveAgg.totalsEuroCents - progFee)}</td>
+                      </tr>
+                    </>
+                  )}
                 </tbody>
               </Table>
             </>

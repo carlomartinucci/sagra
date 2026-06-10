@@ -30,6 +30,10 @@ export function Total({ onBack, onConfirm, given, setGiven, mode, setMode }: { o
   const products = useAppSelector(selectProducts);
   const total = Object.values(products).reduce((total, product) => total + product.euroCents * product.quantity, 0)
 
+  // Electronic payments (bancomat/carta) behave like the old "POS" mode here:
+  // the customer pays the full total, no change. The merchant fees (0.6%/0.9%)
+  // are deliberately NOT shown here — they only appear in the admin resoconto.
+  const isElectronic = mode === "bancomat" || mode === "carta"
   const resto = mode === "cash" ? given - total : 0
 
   return <>
@@ -38,7 +42,8 @@ export function Total({ onBack, onConfirm, given, setGiven, mode, setMode }: { o
 
       <ButtonGroup>
         <ToggleButton id="mode-cash" value="cash" type="radio" variant={mode === "cash" ? "primary" : "outline-primary"} size="lg" checked={mode === "cash"} onChange={(e) => setMode(e.target.value)}>Contanti</ToggleButton>
-        <ToggleButton id="mode-POS" value="POS" type="radio" variant={mode === "POS" ? "primary" : "outline-primary"} size="lg" checked={mode === "POS"} onChange={(e) => setMode(e.target.value)}>POS</ToggleButton>
+        <ToggleButton id="mode-bancomat" value="bancomat" type="radio" variant={mode === "bancomat" ? "primary" : "outline-primary"} size="lg" checked={mode === "bancomat"} onChange={(e) => setMode(e.target.value)}>Bancomat</ToggleButton>
+        <ToggleButton id="mode-carta" value="carta" type="radio" variant={mode === "carta" ? "primary" : "outline-primary"} size="lg" checked={mode === "carta"} onChange={(e) => setMode(e.target.value)}>Carta</ToggleButton>
         <ToggleButton id="mode-servizio" value="servizio" type="radio" variant={mode === "servizio" ? "primary" : "outline-primary"} size="lg" checked={mode === "servizio"} onChange={(e) => setMode(e.target.value)}>Servizio</ToggleButton>
       </ButtonGroup>
 
@@ -85,7 +90,7 @@ export function Total({ onBack, onConfirm, given, setGiven, mode, setMode }: { o
         </Col>
         <Col>
         <h3>Ricevuto dal cliente:</h3>
-        <h2>{mode === "cash" ? displayEuroCents(given) : mode === "POS" ? displayEuroCents(total) : "-"}</h2>
+        <h2>{mode === "cash" ? displayEuroCents(given) : isElectronic ? displayEuroCents(total) : "-"}</h2>
         </Col>
         <Col>
         <h3>Resto:</h3>
@@ -160,7 +165,7 @@ export function CucinaOrder({ count, coperti, tavolo, given, mode }: { count: st
           {(new Date()).toLocaleTimeString()} {"- "}
           {tavolo ? `Tavolo ${tavolo} - ` : ""}
           {displayEuroCents(totalEuroCents)}
-          {mode === "POS" ? ` (POS)` : ""}
+          {mode === "bancomat" ? ` (BANCOMAT)` : mode === "carta" ? ` (CARTA)` : mode === "POS" ? ` (POS)` : ""}
         </h2>
       </div>
     </div>
