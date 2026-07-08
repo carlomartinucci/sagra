@@ -65,11 +65,16 @@ only the API key comes from env.
 - **`src/features/order/PrintableOrder.tsx`** — the `Total` payment screen, the on-screen
   `RecapOrder`, and the print-only `PrintableOrder` (renders the kitchen receipt twice
   with a page break). Receipt font sizes scale with item count.
-- **`src/features/resoconto/Resoconto.tsx`** — read-only report aggregated from
+- **`src/features/resoconto/Resoconto.tsx`** — report aggregated from
   `orderHistory`. Two modes: **"Serata (ultime N ore)"** (4/6/8/12/24h rolling window,
   the right tool for an evening that crosses midnight) and **"Per giornata"** (Italian
-  calendar-day tabs with parziale + progressivo). Both are computed from the same raw
-  order list and split totals by payment mode.
+  calendar-day tabs, grouped by year, with parziale + progressivo). Both are computed
+  from the same raw order list and split totals by payment mode. The **"Azzera totali"**
+  button appends a ms timestamp to `resocontoResets` on the sagra doc (`arrayUnion` +
+  merge — never overwrite `count`): history stays browsable, but the progressivo and
+  the serata view only count orders after the latest applicable reset. Year changes
+  are period boundaries too (`latestResetMsFor`), so last year's data never inflates
+  this year's progressivo.
 - **`src/logOrder.js`** — writes/updates an order document in `orderHistory`.
 - **`src/googleSheetsMapper.js`** — fetches the `menu` worksheet and maps header row →
   array of record objects.
@@ -77,7 +82,8 @@ only the API key comes from env.
 
 ### Firestore layout
 
-- `sagre/{SAGRA_ID}` → `{ count }`
+- `sagre/{SAGRA_ID}` → `{ count, resocontoResets?: number[] }` (ms timestamps
+  appended by the Resoconto "Azzera totali" button)
 - `sagre/{SAGRA_ID}/orderHistory/{autoId}` → order doc (`count`, `cachedQuantity`,
   `cachedEuroCents`, `created`, `products[]`, `mode`)
 - `sagre/{SAGRA_ID}/dailyPortions/{YYYY-MM-DD}` → `{ date, created, portions{} }`
