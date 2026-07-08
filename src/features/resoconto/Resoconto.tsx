@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { collection, getDocs } from '@firebase/firestore/lite';
+import { collection, getDocs, doc, getDoc, setDoc, arrayUnion } from '@firebase/firestore/lite';
 import Nav from 'react-bootstrap/Nav';
 import Table from 'react-bootstrap/Table';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
@@ -72,6 +72,28 @@ function getTodayISO(): string {
   return formatDate(new Date());
 }
 
+// --- Azzeramento totali ------------------------------------------------------
+// The operator can "azzerare" the running totals at the start of the real sagra
+// (after the test orders): a reset timestamp is appended to `resocontoResets`
+// on the sagra doc in Firestore, so it applies to every till at once. History
+// is never deleted — old days/years stay browsable — but progressive totals
+// and the "serata" view only count orders after the latest applicable reset.
+// Together with the solar year, resets define the boundaries of a "period".
+//
+// Latest reset (ms) that applies to the given Rome-time day: it must fall in
+// the same year (year changes are already boundaries on their own) and not
+// after the selected day. Returns 0 when no reset applies.
+export function latestResetMsFor(dateISO: string, resets: number[]): number {
+  let latest = 0;
+  for (const resetMs of resets) {
+    const resetDate = formatDate(new Date(resetMs));
+    if (resetDate.slice(0, 4) === dateISO.slice(0, 4) && resetDate <= dateISO && resetMs > latest) {
+      latest = resetMs;
+    }
+  }
+  return latest;
+}
+
 function emptyAgg(): AggregatedDay {
   return { products: {}, totalsEuroCents: 0, totalsByMode: { cash: 0, bancomat: 0, carta: 0, POS: 0, servizio: 0 } };
 }
@@ -88,7 +110,7 @@ const estimatedFeeCents = (totalsByMode: Record<string, number>): number =>
   Math.round((totalsByMode.carta || 0) * FEE_CARTA);
 
 // Aggregate a set of raw orders into product totals and per-mode money totals.
-function aggregate(orders: RawOrder[]): AggregatedDay {
+export function aggregate(orders: RawOrder[]): AggregatedDay {
   const agg = emptyAgg();
   for (const order of orders) {
     for (const product of order.products) {
@@ -134,6 +156,7 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
   const [dates, setDates] = useState<string[]>([today]);
 
   const [orders, setOrders] = useState<RawOrder[]>([]);
+  const [resets, setResets] = useState<number[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   // Bumped after every successful fetch so "ultime N ore" recomputes against now.
   const [refreshedAt, setRefreshedAt] = useState<number>(Date.now());
@@ -152,6 +175,7 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
           const isStale = (Date.now() - cached.timestamp) >= CACHE_TTL_MS_TODAY;
           if (!isStale && Array.isArray(cached.orders)) {
             setOrders(cached.orders);
+            setResets(Array.isArray(cached.resets) ? cached.resets : []);
             setRefreshedAt(Date.now());
             return;
           }
@@ -165,6 +189,12 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
     setLoading(true);
     try {
       const snapshot = await getDocs(collection(firestore, `sagre/${process.env.REACT_APP_SAGRA_ID}/orderHistory`));
+
+      // The reset timestamps live on the sagra doc itself (same doc as the
+      // order counter — merged writes only, never overwrite `count`).
+      const sagraSnap = await getDoc(doc(firestore, `sagre/${process.env.REACT_APP_SAGRA_ID}`));
+      const sagraData: any = sagraSnap.exists() ? sagraSnap.data() : {};
+      const fetchedResets: number[] = Array.isArray(sagraData.resocontoResets) ? sagraData.resocontoResets : [];
 
       const raw: RawOrder[] = [];
       snapshot.forEach((docSnap: any) => {
@@ -187,8 +217,9 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
       });
 
       setOrders(raw);
+      setResets(fetchedResets);
       setRefreshedAt(Date.now());
-      window.localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), orders: raw }));
+      window.localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), orders: raw, resets: fetchedResets }));
     } finally {
       setLoading(false);
     }
@@ -198,23 +229,49 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
     fetchAndAggregate();
   }, [fetchAndAggregate]);
 
-  // Per-day aggregation (Italian calendar day) derived from raw orders.
-  const aggregatedByDate: Record<string, AggregatedDay> = (() => {
-    const byDate: Record<string, RawOrder[]> = {};
-    for (const order of orders) {
-      const dateISO = formatDate(new Date(order.createdMs));
-      (byDate[dateISO] ||= []).push(order);
+  // "Azzera totali": append a reset timestamp on the sagra doc. History stays;
+  // progressive totals and the serata view restart from this moment on every till.
+  const handleAzzeraTotali = async () => {
+    if (!firestore) return;
+    const ok = window.confirm(
+      'Azzerare i totali da questo momento?\n\n' +
+      'Lo storico NON si perde: i giorni e gli anni precedenti restano consultabili. ' +
+      'Ma i subtotali progressivi e la vista "serata" ripartono da zero, su tutte le casse.\n\n' +
+      "Da usare all'inizio della sagra vera, per escludere gli ordini di prova."
+    );
+    if (!ok) return;
+    const nowMs = Date.now();
+    try {
+      await setDoc(
+        doc(firestore, `sagre/${process.env.REACT_APP_SAGRA_ID}`),
+        { resocontoResets: arrayUnion(nowMs) },
+        { merge: true }
+      );
+      const newResets = [...resets, nowMs];
+      setResets(newResets);
+      setRefreshedAt(Date.now());
+      // Keep the localStorage cache coherent so a reload within the TTL
+      // doesn't resurrect the pre-reset totals.
+      const cacheKey = `${CACHE_PREFIX}orders`;
+      const cachedRaw = window.localStorage.getItem(cacheKey);
+      if (cachedRaw) {
+        try {
+          const cached = JSON.parse(cachedRaw);
+          cached.resets = newResets;
+          window.localStorage.setItem(cacheKey, JSON.stringify(cached));
+        } catch (e) {
+          window.localStorage.removeItem(cacheKey);
+        }
+      }
+    } catch (e) {
+      console.error('Errore durante l\'azzeramento dei totali', e);
+      window.alert('Errore nel salvataggio dell\'azzeramento: controlla la connessione e riprova.');
     }
-    const result: Record<string, AggregatedDay> = {};
-    for (const [d, list] of Object.entries(byDate)) {
-      result[d] = aggregate(list);
-    }
-    return result;
-  })();
+  };
 
   // Keep the day-tabs in sync with the data.
   useEffect(() => {
-    const keys = Object.keys(aggregatedByDate);
+    const keys = Array.from(new Set(orders.map((o) => formatDate(new Date(o.createdMs)))));
     const sorted = keys.length ? keys.sort().reverse() : [today];
     setDates(sorted);
     if (!keys.includes(selectedDate) && sorted.length) {
@@ -223,40 +280,42 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orders]);
 
+  // Days are grouped by (solar) year so last year's history stays browsable
+  // without inflating this year's progressive totals.
+  const years = Array.from(new Set(dates.map((d) => d.slice(0, 4)))).sort().reverse();
+  const selectedYear = selectedDate.slice(0, 4);
+  const datesOfYear = dates.filter((d) => d.startsWith(selectedYear));
+
   const displayEuro = (euroCents: number) =>
     (euroCents / 100).toLocaleString('it-IT', { minimumFractionDigits: 2, style: 'currency', currency: 'EUR' });
 
   // ---- "Ultime N ore" (serata) view ----
+  // An "azzera" done inside the window clamps it: pre-reset (test) orders
+  // must not pollute the live totals either.
+  const latestResetMs = resets.length ? Math.max(...resets) : 0;
   const windowStartMs = refreshedAt - hoursBack * 60 * 60 * 1000;
-  const serataAgg = aggregate(orders.filter((o) => o.createdMs >= windowStartMs));
+  const serataStartMs = Math.max(windowStartMs, latestResetMs);
+  const serataAgg = aggregate(orders.filter((o) => o.createdMs >= serataStartMs));
   const serataProducts = Object.entries(serataAgg.products).filter(([, info]) => info.quantity > 0);
   const serataFee = estimatedFeeCents(serataAgg.totalsByMode);
 
   // ---- "Per giornata" view ----
-  const dayAgg = aggregatedByDate[selectedDate];
-  const progressiveAgg: AggregatedDay | null = (() => {
-    if (!dayAgg) return null;
-    const sorted = Object.keys(aggregatedByDate).sort();
-    const progressive = emptyAgg();
-    for (const d of sorted) {
-      if (d > selectedDate) break;
-      const current = aggregatedByDate[d];
-      Object.entries(current.products).forEach(([name, info]) => {
-        if (!progressive.products[name]) progressive.products[name] = { quantity: 0, euroCents: 0 };
-        progressive.products[name].quantity += info.quantity;
-        progressive.products[name].euroCents += info.euroCents;
-      });
-      progressive.totalsEuroCents += current.totalsEuroCents;
-      Object.entries(current.totalsByMode).forEach(([mode, euro]) => {
-        if (!progressive.totalsByMode[mode]) progressive.totalsByMode[mode] = 0;
-        progressive.totalsByMode[mode] += euro;
-      });
-    }
-    return progressive;
-  })();
+  // Parziale and progressivo both start at the latest reset applicable to the
+  // selected day (0 = none): the progressivo restarts at every "azzera" and at
+  // every year change; the parziale is only affected when the reset happened
+  // on the selected day itself (its pre-reset test orders stay out).
+  const dayResetMs = latestResetMsFor(selectedDate, resets);
+  const hasOrdersOnDay = orders.some((o) => formatDate(new Date(o.createdMs)) === selectedDate);
+  const dayAgg: AggregatedDay = aggregate(orders.filter((o) =>
+    formatDate(new Date(o.createdMs)) === selectedDate && o.createdMs >= dayResetMs
+  ));
+  const progressiveAgg: AggregatedDay = aggregate(orders.filter((o) => {
+    const d = formatDate(new Date(o.createdMs));
+    return d.slice(0, 4) === selectedYear && d <= selectedDate && o.createdMs >= dayResetMs;
+  }));
 
-  const dayFee = dayAgg ? estimatedFeeCents(dayAgg.totalsByMode) : 0;
-  const progFee = progressiveAgg ? estimatedFeeCents(progressiveAgg.totalsByMode) : 0;
+  const dayFee = estimatedFeeCents(dayAgg.totalsByMode);
+  const progFee = estimatedFeeCents(progressiveAgg.totalsByMode);
 
   return (
     <div className="container my-4">
@@ -274,6 +333,9 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
         <Button variant="outline-secondary" disabled={loading} onClick={() => fetchAndAggregate(true)}>
           {loading ? 'Aggiorno…' : '↻ Aggiorna'}
         </Button>
+        <Button variant="outline-danger" disabled={loading} onClick={handleAzzeraTotali}>
+          Azzera totali (inizio sagra)
+        </Button>
       </div>
 
       {viewMode === 'serata' ? (
@@ -288,7 +350,9 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
             </ButtonGroup>
           </div>
           <p className="text-center text-muted small">
-            Ultime {hoursBack} ore — dalle {formatDateTime(new Date(windowStartMs))} a ora
+            Ultime {hoursBack} ore — dalle {formatDateTime(new Date(serataStartMs))} a ora
+            {latestResetMs > windowStartMs &&
+              ' (totali azzerati in questo intervallo: gli ordini precedenti non contano)'}
           </p>
 
           {serataProducts.length > 0 ? (
@@ -348,9 +412,29 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
         </>
       ) : (
         <>
+          {years.length > 1 && (
+            <div className="d-flex justify-content-center my-3">
+              <Nav
+                variant="pills"
+                activeKey={selectedYear}
+                onSelect={(y) => {
+                  // Jump to the most recent day of that year (dates are sorted desc).
+                  const first = y && dates.find((d) => d.startsWith(y));
+                  if (first) setSelectedDate(first);
+                }}
+              >
+                {years.map((y) => (
+                  <Nav.Item key={y}>
+                    <Nav.Link eventKey={y}>{y}</Nav.Link>
+                  </Nav.Item>
+                ))}
+              </Nav>
+            </div>
+          )}
+
           <div className="d-flex justify-content-center my-3">
             <Nav variant="pills" activeKey={selectedDate} onSelect={(k) => k && setSelectedDate(k)}>
-              {dates.map((d) => (
+              {datesOfYear.map((d) => (
                 <Nav.Item key={d}>
                   <Nav.Link eventKey={d}>{d === today ? `${d} (oggi)` : d}</Nav.Link>
                 </Nav.Item>
@@ -358,7 +442,14 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
             </Nav>
           </div>
 
-          {dayAgg && progressiveAgg && (
+          {dayResetMs > 0 && (
+            <p className="text-center text-muted small">
+              Totali azzerati il {formatDateTime(new Date(dayResetMs))}: gli ordini precedenti
+              restano nello storico ma non contano nel progressivo.
+            </p>
+          )}
+
+          {hasOrdersOnDay && (
             <>
               <Table striped bordered hover size="sm">
                 <thead>
@@ -435,7 +526,7 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
             </>
           )}
 
-          {!dayAgg && !loading && <p className="text-center">Nessun dato disponibile per questa data.</p>}
+          {!hasOrdersOnDay && !loading && <p className="text-center">Nessun dato disponibile per questa data.</p>}
         </>
       )}
     </div>
