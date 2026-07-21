@@ -124,7 +124,9 @@ default 20). Values arrive as strings — `parseInt` before use.
   by the current "service day" (`currentServiceDayKey`, which rolls over at 17:00
   Europe/Rome), so staff re-enter once per evening. Empty/unset password disables the
   gate (e.g. in tests). The password is in the client bundle — convenience, not security.
-- **Hidden keyboard shortcuts** (type the word anywhere, handled by `useDetectKeypress`):
+- **Hidden keyboard shortcuts** (type the word anywhere, handled by `useDetectKeypress`;
+  matching is case-insensitive and also listens to `beforeinput` so Caps Lock,
+  auto-capitalization, and on-screen/IME keyboards work):
   - `alpaca` → clear the offline counter prefix (re-show A/B/C picker)
   - `pizza` → open the portions admin modal
   - `resoconto` → open the end-of-day report view
