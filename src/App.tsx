@@ -151,7 +151,11 @@ function App({ firestore }: { firestore: any }) {
 
   const componentRef = useRef(null);
   const handlePrint = useReactToPrint({
-    content: () => componentRef.current
+    content: () => componentRef.current,
+    // Some browsers leave keyboard focus on react-to-print's hidden iframe
+    // after the print dialog closes; keydown then never reaches this document
+    // and the typed-word shortcuts stop working until reload.
+    onAfterPrint: () => window.focus()
   });
 
   const handleConfirm = async () => {
