@@ -2,9 +2,8 @@ import { useState } from 'react'
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 import {
-  getDoc,
-  updateDoc,
-  doc
+  doc,
+  runTransaction
 } from '@firebase/firestore/lite';
 
 const incrementWithLocalStorage = async () => {
@@ -26,16 +25,21 @@ const incrementWithLocalStorage = async () => {
 }
 
 const incrementWithFirestore = async (firestore: any) => {
-  // TODO: try to use firestore not lite to do it atomically and protect from race conditions
+  // Read + increment inside a transaction. The previous getDoc/updateDoc pair
+  // was not atomic: two tills confirming in the same moment both read N and
+  // both printed order number N (it happened for real). The transaction
+  // retries on contention, so each till gets its own number.
   const docRef = doc(firestore, `sagre/${process.env.REACT_APP_SAGRA_ID}`);
-  const count = (await getDoc(docRef)).get("count");
-  if (count) {
+  const value = await runTransaction(firestore, async (transaction: any) => {
+    const count = (await transaction.get(docRef)).get("count");
+    if (!count) {
+      throw new Error("Couldn't increment with firestore");
+    }
     console.log(count)
-    await updateDoc(docRef, "count", count + 1);
-    return { value: count, isOnline: true }
-  } else {
-    throw new Error("Couldn't increment with firestore");
-  }
+    transaction.update(docRef, { count: count + 1 });
+    return count;
+  });
+  return { value, isOnline: true }
 }
 
 export interface CounterState {
