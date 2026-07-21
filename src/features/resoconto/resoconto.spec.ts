@@ -62,6 +62,7 @@ describe('aggregate', () => {
     const agg = aggregate(orders);
     expect(agg.products['Tordelli']).toEqual({ quantity: 3, euroCents: 2400 });
     expect(agg.products['Panigacci']).toEqual({ quantity: 3, euroCents: 1500 });
+    expect(agg.orderCount).toBe(2);
     expect(agg.totalsEuroCents).toBe(3900);
     expect(agg.totalsByMode.cash).toBe(1600);
     expect(agg.totalsByMode.bancomat).toBe(2300);

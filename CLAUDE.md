@@ -61,7 +61,9 @@ only the API key comes from env.
   daily-portion tracking (thunks: `getMenu`, `getDailyPortions`,
   `forceReloadDailyPortions`, `resetSinglePortion`, `decrementPortion`).
 - **`src/features/counter/counterSlice.ts`** — sequential order number. Online: 4-digit
-  Firestore counter. Offline fallback: 3-digit localStorage counter with an A/B/C prefix.
+  Firestore counter, incremented inside `runTransaction` — never a plain
+  getDoc/updateDoc pair, which let two tills print the same number.
+  Offline fallback: 3-digit localStorage counter with an A/B/C prefix.
 - **`src/features/order/PrintableOrder.tsx`** — the `Total` payment screen, the on-screen
   `RecapOrder`, and the print-only `PrintableOrder` (renders the kitchen receipt twice
   with a page break). Receipt font sizes scale with item count.

@@ -38,6 +38,7 @@ interface AggregatedReport {
 
 interface AggregatedDay {
   products: AggregatedReport;
+  orderCount: number;
   totalsEuroCents: number;
   totalsByMode: Record<string, number>; // cash, bancomat, carta, servizio (+ legacy POS)
 }
@@ -95,7 +96,7 @@ export function latestResetMsFor(dateISO: string, resets: number[]): number {
 }
 
 function emptyAgg(): AggregatedDay {
-  return { products: {}, totalsEuroCents: 0, totalsByMode: { cash: 0, bancomat: 0, carta: 0, POS: 0, servizio: 0 } };
+  return { products: {}, orderCount: 0, totalsEuroCents: 0, totalsByMode: { cash: 0, bancomat: 0, carta: 0, POS: 0, servizio: 0 } };
 }
 
 // Merchant fees withheld by the payment provider: 0.6% on bancomat (debit),
@@ -122,6 +123,7 @@ export function aggregate(orders: RawOrder[]): AggregatedDay {
         agg.products[product.name].euroCents += product.euroCents * product.quantity;
       }
     }
+    agg.orderCount += 1;
     agg.totalsEuroCents += order.euroCents;
     if (!agg.totalsByMode[order.mode]) agg.totalsByMode[order.mode] = 0;
     agg.totalsByMode[order.mode] += order.euroCents;
@@ -380,6 +382,10 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
 
               <Table bordered className="mt-4" style={{ maxWidth: 460, margin: '0 auto' }}>
                 <tbody>
+                  <tr className="fw-bold">
+                    <td>ORDINI PROCESSATI</td>
+                    <td className="text-end">{serataAgg.orderCount}</td>
+                  </tr>
                   <tr className="table-primary fw-bold">
                     <td>{serataFee > 0 ? 'TOTALE PERIODO (lordo)' : 'TOTALE PERIODO'}</td>
                     <td className="text-end">{displayEuro(serataAgg.totalsEuroCents)}</td>
@@ -475,6 +481,11 @@ const Resoconto: React.FC<ResocontoProps> = ({ firestore }) => {
 
               <Table bordered className="mt-4" style={{ maxWidth: 460, margin: '0 auto' }}>
                 <tbody>
+                  <tr className="fw-bold">
+                    <td>ORDINI PROCESSATI</td>
+                    <td>{dayAgg.orderCount}</td>
+                    <td>{progressiveAgg.orderCount}</td>
+                  </tr>
                   <tr className="table-primary fw-bold">
                     <td>{progFee > 0 ? 'SUBTOTALE GIORNATA (lordo)' : 'SUBTOTALE GIORNATA'}</td>
                     <td>{displayEuro(dayAgg.totalsEuroCents)}</td>
